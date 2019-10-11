@@ -2,29 +2,22 @@ dist: trusty
 language: python
 git:
   depth: 1
-
 cache:
   apt: true
-
 python:
-  - '3.6'
-#  - "nightly"
-
+- '3.6'
 install:
-  - pip install pytest coveralls
-  - python setup.py install
-
+- pip install pytest coveralls
+- python setup.py install
 script:
-  - coverage run --source=pyMathBitPrecise setup.py test
-
-#deploy:
-#  provider: pypi
-#  user: nic30
-#  password:
-#    secure:
-#  on:
-#    tags: true
-#    branch: master
-
+- coverage run --source=pyMathBitPrecise setup.py test
 after_success:
 - coveralls
+deploy:
+  provider: pypi
+  user: nic30
+  password:
+    secure: hVBp/e6KA2SsUpCOP8Ox3gnUYJHu43AuKR7zpbqIKtXw/W1tjZu2lm1pN0uF2eCGx4+MmcEANkdR1U9eZ4cC2bh0UbnuGVerPqBoMmig38KuYv1uMce8g9EFUqEJuxoYVR1wth7TZbDZ+1VMZ8X1RbYLfytG5ZjlvMtnBNXpzuyxJLa+jl+P6spJj4DLlzUpN+azIRBYFRSL3BKsYSfdkvkKOPyScjtPxPIgY5kmLDUGSVp+J0bnqEI9qZMTSskprXRl4sJBjKUOvwIxnAy3CUEttt/QOaeXGU/vb2B/AgOh3HsXd7ySATVbz8Wbfxh040OXuzAyjUjJfSRUsH1g8iX3cMwR+5FPN8TcfWGBTVMF0DKDC87ypXbpuUKfHqvrMTJqEs8YXBTVvBo5KHz5pvNiIjf1uP72aDsVCiTItAmW44SwIgPHln1bYSSoE2YQiGDy1y6cejf0fu946bRmLvunRuhK1av0Edo0DfygAFRZeG8W6uE++F9YzH7DNqHsFCqYtdITP/AHKD95YNixjgxYdQ8pOFeaKVudyjKMWkfXSiQ6silBhsLGyBuzI/xZAD69bj07FUZ6gdalU7/6jtNssYoBCOw63L4oEQ9DBPCt+LR34gFhDO9CnnWF7aHziaDi3+Wt68LnnH373u1edYnps1P7KRzyCjeI3yPLqxU=
+  on:
+    tags: true
+    branch: master
