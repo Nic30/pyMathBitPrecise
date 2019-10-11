@@ -17,6 +17,7 @@ This may be usefull for tools which are simulating hardware or software which ne
 ```Python
 from mathBitPrecise.bits3t import Bits3t
 
+#3t means that bits can have values 1,0,x
 uint512_t = Bits3t(512, signed=False)
 
 a = uint512_t.from_py(1)
