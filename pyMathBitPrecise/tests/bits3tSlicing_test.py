@@ -2,8 +2,8 @@
 # -*- coding: UTF-8 -*-
 
 import unittest
-from mathBitPrecise.tests.bits3tBaseTC import uint8_t
-from mathBitPrecise.bits3t import BIT, Bits3t
+from pyMathBitPrecise.tests.bits3tBaseTC import uint8_t
+from pyMathBitPrecise.bits3t import BIT, Bits3t
 
 
 def vec(val, w):

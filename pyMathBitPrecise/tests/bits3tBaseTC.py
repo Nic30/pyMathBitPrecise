@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: UTF-8 -*-
 
-from mathBitPrecise.bits3t import Bits3t
+from pyMathBitPrecise.bits3t import Bits3t
 import unittest
 
 int8_t = Bits3t(8, signed=True)

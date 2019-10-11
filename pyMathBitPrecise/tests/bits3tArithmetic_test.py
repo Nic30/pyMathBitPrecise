@@ -2,10 +2,10 @@
 # -*- coding: UTF-8 -*-
 
 import unittest
-from mathBitPrecise.tests.bits3tBaseTC import Bits3tBaseTC, int8_t, valToInt, \
+from pyMathBitPrecise.tests.bits3tBaseTC import Bits3tBaseTC, int8_t, valToInt, \
     int512_t, uint512_t, uint8_t
-from mathBitPrecise.bits3t import Bits3t
-from mathBitPrecise.bit_utils import mask
+from pyMathBitPrecise.bits3t import Bits3t
+from pyMathBitPrecise.bit_utils import mask
 
 
 class Bits3tArithmeticTC(Bits3tBaseTC):

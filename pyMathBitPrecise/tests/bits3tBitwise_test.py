@@ -3,9 +3,9 @@
 
 import unittest
 
-from mathBitPrecise.bit_utils import to_signed, mask
-from mathBitPrecise.bits3t import Bits3t
-from mathBitPrecise.tests.bits3tBaseTC import Bits3tBaseTC, int8_t, int512_t, \
+from pyMathBitPrecise.bit_utils import to_signed, mask
+from pyMathBitPrecise.bits3t import Bits3t
+from pyMathBitPrecise.tests.bits3tBaseTC import Bits3tBaseTC, int8_t, int512_t, \
     uint512_t, uint8_t
 
 

@@ -15,7 +15,7 @@ install:
   - python setup.py install
 
 script:
-  - coverage run --source=mathBitPrecise setup.py test
+  - coverage run --source=pyMathBitPrecise setup.py test
 
 #deploy:
 #  provider: pypi

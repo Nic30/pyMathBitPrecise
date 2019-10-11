@@ -3,11 +3,11 @@
 
 import unittest
 
-from mathBitPrecise.tests.bits3tArithmetic_test import Bits3tArithmeticTC
-from mathBitPrecise.tests.bits3tBasic_test import Bits3tBasicTC
-from mathBitPrecise.tests.bits3tBitwise_test import Bits3tBitwiseTC
-from mathBitPrecise.tests.bits3tCmp_test import Bits3tCmpTC
-from mathBitPrecise.tests.bits3tSlicing_test import BitsSlicingTC
+from pyMathBitPrecise.tests.bits3tArithmetic_test import Bits3tArithmeticTC
+from pyMathBitPrecise.tests.bits3tBasic_test import Bits3tBasicTC
+from pyMathBitPrecise.tests.bits3tBitwise_test import Bits3tBitwiseTC
+from pyMathBitPrecise.tests.bits3tCmp_test import Bits3tCmpTC
+from pyMathBitPrecise.tests.bits3tSlicing_test import BitsSlicingTC
 
 if __name__ == "__main__":
     suite = unittest.TestSuite()

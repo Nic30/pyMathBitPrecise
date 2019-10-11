@@ -2,9 +2,9 @@
 # -*- coding: UTF-8 -*-
 
 import unittest
-from mathBitPrecise.tests.bits3tBaseTC import Bits3tBaseTC, int8_t, \
+from pyMathBitPrecise.tests.bits3tBaseTC import Bits3tBaseTC, int8_t, \
     int512_t, uint512_t, uint8_t
-from mathBitPrecise.bits3t import Bits3t
+from pyMathBitPrecise.bits3t import Bits3t
 
 
 class Bits3tCmpTC(Bits3tBaseTC):
