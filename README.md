@@ -1,4 +1,4 @@
-# mathBitPrecise
+# pyMathBitPrecise
 
 This library contains number types of variable bit size and utils for bit manipulations.
 Thre are also types which support tri state values etc. (Python equivalents of VHDL `std_logic_vector`, Verilog `wire`/`reg`.)
