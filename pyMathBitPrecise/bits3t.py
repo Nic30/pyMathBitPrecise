@@ -1,0 +1,518 @@
+#!/usr/bin/env python3
+# -*- coding: UTF-8 -*-
+
+from mathBitPrecise.bit_utils import mask, selectBit, selectBitRange, \
+    to_signed, setBitRange, bitSetTo, bitField, to_unsigned, INT_BASES, \
+    ValidityError, normalize_slice
+from typing import Union, Optional
+from enum import Enum
+from math import log2, ceil
+from operator import le, ge, gt, lt, ne, eq, and_, or_, xor, sub, add
+from mathBitPrecise.bits3t_vld_masks import vld_mask_for_xor, vld_mask_for_and, \
+    vld_mask_for_or
+
+
+class Bits3t():
+    """
+    Meta type for integer of specified size where
+    each bit can be '1', '0' or 'X' for undefined value.
+
+    :ivar bit_width: number representation of value of this type
+    :ivar signed: flag which tells if this type is signed or not
+    :ivar name: name for anotation
+    :ivar permissive_sign: same thing as permissive_width just for signed/unsigned 
+    :ivar permissive_width: if True the arithmetic, bitwise and comparision operators
+        can be performed only on value of this exact type
+        otherwise the width of operands can be different
+    """
+
+    def __init__(self, bit_width: int, signed=False, name=None):
+        self.bit_width = bit_width
+        self.signed = signed
+        self.mask = mask(bit_width)
+        self.name = name
+        self.permissive_sign = False
+        self.permissive_width = False
+
+    def __copy__(self):
+        t = self.__class__(self.bit_width, signed=self.signed, name=self.name)
+        t.permissive_sign = self.permissive_sign
+        t.permissive_width = self.permissive_width
+        return t
+
+    def all_mask(self) -> int:
+        return self.mask
+
+    def bit_length(self) -> int:
+        return self.bit_width
+
+    def __eq__(self, other):
+        return (self is other
+                or (isinstance(other, Bits3t)
+                    and self.bit_width == other.bit_width
+                    and self.name == other.name
+                    and self.permissive_sign == other.permissive_sign
+                    and self.permissive_width == other.permissive_width
+                    and self.signed == other.signed
+                    )
+                )
+
+    def from_py(self, val: Union[int, bytes, str, Enum],
+                vld_mask: Optional[int]=None) -> "Bits3val":
+        """
+        Construct value from pythonic value
+        :note: str value has to start with base specifier (0b, 0h)
+            and is much slower than the value specified
+            by 'val' and 'vld_mask'. Does support x.
+        """
+        if val is None:
+            vld = 0
+            val = 0
+            assert vld_mask is None or vld_mask == 0
+        else:
+            all_mask = self.all_mask()
+            w = self.bit_length()
+            if isinstance(val, bytes):
+                val = int.from_bytes(
+                    val, byteorder="little", signed=bool(self.signed))
+            elif isinstance(val, str):
+                if not (val.startswith("0") and len(val) > 2):
+                    raise ValueError(val)
+
+                base = INT_BASES[val[1]]
+                try:
+                    val = int(val[2:], base)
+                except ValueError:
+                    val = None
+
+                if val is None:
+                    assert vld_mask is None
+                    val = val.lower()
+                    if base == 10 and "x" in val:
+                        raise NotImplementedError()
+                    v = 0
+                    m = 0
+                    bits_per_char = ceil(log2(base))
+                    char_mask = mask(bits_per_char)
+                    for digit in val[2:]:
+                        v <<= bits_per_char
+                        m <<= bits_per_char
+                        if digit == "x":
+                            m = 0
+                        else:
+                            m = char_mask
+                            v |= int(digit, base)
+                    val = v
+                    vld_mask = m
+            else:
+                try:
+                    val = int(val)
+                except TypeError as e:
+                    if isinstance(val, Enum):
+                        val = int(val.value)
+                    else:
+                        raise e
+
+            if vld_mask is None:
+                vld = all_mask
+            else:
+                if vld_mask > all_mask or vld_mask < 0:
+                    raise ValueError("Mask in incorrect format")
+                vld = vld_mask
+
+            if val < 0:
+                if not self.signed:
+                    raise ValueError("Negative value for positive int")
+                _val = to_signed(val & all_mask, w)
+                if _val != val:
+                    raise ValueError("Too large value", val, _val)
+                val = _val
+            else:
+                if self.signed:
+                    msb = 1 << (w - 1)
+                    if msb & val:
+                        if val > 0:
+                            raise ValueError("Value too large to fit in this type", val)
+
+                if val & all_mask != val:
+                    raise ValueError(
+                        "Not enought bits to represent value",
+                        val, val & all_mask)
+                val = val & vld
+
+        return Bits3val(self, val, vld)
+
+    def __hash__(self):
+        return hash((self.bit_width, self.signed))
+
+
+BIT = Bits3t(1, name="bit")
+BOOL = Bits3t(1, name="bool")
+
+
+class Bits3val():
+    """
+    :ivar _dtype: reference on type of this value
+    :ivar val: always unsigned representation int value
+    :ivar vld_mask: always unsigned value of the mask, if bit in mask is '0'
+            the corresponding bit in val is invalid
+    """
+    __slots__ = ["_dtype", "val", "vld_mask"]
+
+    def __init__(self, t: Bits3t, val: int, vld_mask: int):
+        self._dtype = t
+        self.val = val
+        self.vld_mask = vld_mask
+
+    def __copy__(self):
+        return self.__class__(self._dtype, self.val, self.vld_mask)
+
+    def to_py(self) -> int:
+        return int(self)
+
+    def _is_full_valid(self) -> bool:
+        return self.vld_mask == self._dtype.all_mask()
+
+    def __int__(self) -> int:
+        if not self._is_full_valid():
+            raise ValidityError()
+
+        return self.val
+
+    def __bool__(self) -> bool:
+        return bool(self.__int__())
+
+    def cast_sign(self, signed) -> "Bits3val":
+        """
+        Cast signed-unsigned value
+        """
+        t = self._dtype
+        if t.signed == signed:
+            return self
+        selfSign = t.signed
+        v = self.__copy__()
+        w = t.bit_width
+        m = t.mask
+        _v = v.val
+
+        if selfSign and not signed:
+            if _v < 0:
+                v.val = m + _v + 1
+        elif not selfSign and signed:
+            msbMask = 1 << (w - 1)
+            if _v >= msbMask:
+                v.val = -_v + msbMask + (m >> 1) - 1
+        v._dtype = v._dtype.__class__(w, signed=signed)
+        return v
+
+    def cast(self, t: Bits3t) -> "Bits3val":
+        """
+        :note: no sign extension
+        """
+        v = self.__copy__()
+        v._dtype = t
+        m = t.all_mask()
+        v.val &= m
+        v.vld_mask &= m
+        if t.signed:
+            v.val = to_signed(v.val, t.bit_length())
+        return v
+
+    def _concat(self, other: "Bits3val") -> "Bits3val":
+        """
+        Concatenate two bit vectors together
+        """
+        if not isinstance(other, Bits3val):
+            raise TypeError(other)
+        w = self._dtype.bit_length()
+        other_w = other._dtype.bit_length()
+        resWidth = w + other_w
+        resT = self._dtype.__class__(resWidth, signed=self._dtype.signed)
+
+        v = self.__copy__()
+        v.val = (v.val << other_w) | other.val
+        v.vld_mask = (v.vld_mask << other_w) | other.vld_mask
+        v._dtype = resT
+        return v
+
+    def __getitem__(self, key: Union[int, slice, "Bits3val"]) -> "Bits3val":
+        if isinstance(key, slice):
+            firstBitNo, size = normalize_slice(key, self._dtype.bit_length())
+            val = selectBitRange(self.val, firstBitNo, size)
+            vld = selectBitRange(self.vld_mask, firstBitNo, size)
+        elif isinstance(key, (int, Bits3val)):
+            size = 1
+            try:
+                _i = int(key)
+            except ValidityError:
+                _i = None
+
+            if _i is None:
+                val = 0
+                vld = 0
+            else:
+                if _i < 0 or _i >= self._dtype.bit_length():
+                    raise IndexError("Index out of range", _i)
+
+                val = selectBit(self.val, _i)
+                vld = selectBit(self.vld_mask, _i)
+        else:
+            raise TypeError(key)
+
+        return self._dtype.__class__(size, signed=self._dtype.signed).from_py(
+                val, vld)
+
+    def __setitem__(self, index: Union[slice, int, "Bits3val"],
+                    value: Union["Bits3val", int]):
+        if isinstance(index, slice):
+            firstBitNo, size = normalize_slice(index, self._dtype.bit_length())
+            if isinstance(value, Bits3val):
+                v = value.val
+                m = value.vld_mask
+            else:
+                v = value
+                m = mask(size)
+
+            self.val = setBitRange(self.val, firstBitNo, size, v)
+            self.vld_mask = setBitRange(
+                self.vld_mask, firstBitNo, size, m)
+        else:
+            if index is None:
+                raise TypeError(index)
+            try:
+                _i = int(index)
+            except ValidityError:
+                _i = None
+
+            if _i is None:
+                self.val = 0
+                self.vld_mask = 0
+            else:
+                if value is None:
+                    v = 0
+                    m = 0
+                elif isinstance(value, Bits3val):
+                    v = value.val
+                    m = value.vld_mask
+                else:
+                    v = value
+                    m = 0b1
+
+                self.val = bitSetTo(self.val, index, v)
+                self.vld_mask = bitSetTo(self.vld_mask, index, m)
+
+    def __invert__(self) -> "Bits3val":
+        v = self.__copy__()
+        v.val = ~v.val
+        w = v._dtype.bit_length()
+        v.val &= mask(w)
+        if self._dtype.signed:
+            v.val = to_signed(v.val, w)
+        return v
+
+    def __eq__(self, other: Union[int, "Bits3val"]) -> "Bits3val":
+        return bitsCmp__val(self, other, eq)
+
+    def __req__(self, other: int) -> "Bits3val":
+        return bitsCmp__val(self._dtype.from_py(other), self, eq)
+
+    def __ne__(self, other: Union[int, "Bits3val"]) -> "Bits3val":
+        return bitsCmp__val(self, other, ne)
+
+    def __rne__(self, other: int) -> "Bits3val":
+        return bitsCmp__val(self._dtype.from_py(other), self, ne)
+
+    def __lt__(self, other: Union[int, "Bits3val"]) -> "Bits3val":
+        return bitsCmp__val(self, other, lt)
+
+    def __rlt__(self, other: int) -> "Bits3val":
+        return bitsCmp__val(self._dtype.from_py(other), self, lt)
+
+    def __gt__(self, other: Union[int, "Bits3val"]) -> "Bits3val":
+        return bitsCmp__val(self, other, gt)
+
+    def __rgt__(self, other: int) -> "Bits3val":
+        return bitsCmp__val(self._dtype.from_py(other), self, gt)
+
+    def __ge__(self, other: Union[int, "Bits3val"]) -> "Bits3val":
+        return bitsCmp__val(self, other, ge)
+
+    def __rge__(self, other: int) -> "Bits3val":
+        return bitsCmp__val(self._dtype.from_py(other), self, ge)
+
+    def __le__(self, other: Union[int, "Bits3val"]) -> "Bits3val":
+        return bitsCmp__val(self, other, le)
+
+    def __rle__(self, other: int) -> "Bits3val":
+        return bitsCmp__val(self._dtype.from_py(other), self, le)
+
+    def __xor__(self, other: Union[int, "Bits3val"]) -> "Bits3val":
+        return bitsBitOp__val(self, other, xor, vld_mask_for_xor)
+
+    def __rxor__(self, other: int) -> "Bits3val":
+        return bitsBitOp__val(self._dtype.from_py(other), self, xor,
+                              vld_mask_for_xor)
+
+    def __and__(self, other: Union[int, "Bits3val"]) -> "Bits3val":
+        return bitsBitOp__val(self, other, and_, vld_mask_for_and)
+
+    def __rand__(self, other: int) -> "Bits3val":
+        return bitsBitOp__val(self._dtype.from_py(other), self, and_,
+                              vld_mask_for_and)
+
+    def __or__(self, other: Union[int, "Bits3val"]) -> "Bits3val":
+        return bitsBitOp__val(self, other, or_, vld_mask_for_or)
+
+    def __ror__(self, other: int) -> "Bits3val":
+        return bitsBitOp__val(self._dtype.from_py(other), self, or_,
+                              vld_mask_for_or)
+
+    def __sub__(self, other: Union[int, "Bits3val"]) -> "Bits3val":
+        return bitsArithOp__val(self, other, sub)
+
+    def __rsub__(self, other: Union[int, "Bits3val"]) -> "Bits3val":
+        return bitsArithOp__val(self._dtype.from_py(other), self, sub)
+
+    def __add__(self, other: Union[int, "Bits3val"]) -> "Bits3val":
+        return bitsArithOp__val(self, other, add)
+
+    def __radd__(self, other: Union[int, "Bits3val"]) -> "Bits3val":
+        return bitsArithOp__val(self._dtype.from_py(other), self, add)
+
+    def __rshift__(self, other: Union[int, "Bits3val"]) -> "Bits3val":
+        try:
+            o = int(other)
+        except ValidityError:
+            o = None
+        if o < 0:
+            raise ValueError("negative shift count")
+        v = self.__copy__()
+        if o is None:
+            v.vld_mask = 0
+            v.val = 0
+        elif o == 0:
+            return v
+        else:
+            w = self._dtype.bit_length()
+            v.vld_mask >>= o
+            v.vld_mask |= bitField(w - o, w)
+            if v.val < 0:
+                assert self._dtype.signed
+                v.val = to_unsigned(v.val, w)
+            v.val >>= o
+
+        return v
+
+    def __lshift__(self, other: Union[int, "Bits3val"]) -> "Bits3val":
+        try:
+            o = int(other)
+        except ValidityError:
+            o = None
+        if o < 0:
+            raise ValueError("negative shift count")
+
+        v = self.__copy__()
+        if o is None:
+            v.vld_mask = 0
+            v.val = 0
+        else:
+            t = self._dtype
+            m = t.all_mask()
+            v.vld_mask <<= o
+            v.vld_mask |= mask(o)
+            v.vld_mask &= m
+            v.val <<= o
+            v.val &= m
+            if t.signed:
+                v.val = to_signed(v.val, t.bit_length())
+        return v
+
+    def __mul__(self, other: Union[int, "Bits3val"]) -> "Bits3val":
+        # [TODO] resT should be wider
+        resT = self._dtype
+        other_is_int = isinstance(other, int)
+        if other_is_int:
+            v = self.val * other
+        elif isinstance(other, Bits3val):
+            v = self.val * other.val
+        else:
+            raise TypeError(other)
+
+        v &= resT.all_mask()
+        if resT.signed:
+            v = to_signed(v, resT.bit_length())
+
+        if self._is_full_valid() and (other_is_int
+                                      or other._is_full_valid()):
+            vld_mask = None
+        else:
+            vld_mask = 0
+
+        return resT.from_py(v, vld_mask=vld_mask)
+
+
+def bitsBitOp__val(self: Bits3val, other: Union[Bits3val, int],
+                   evalFn, getVldFn) -> "Bits3val":
+    if isinstance(other, int):
+        other = self._dtype.from_py(other)
+    w = self._dtype.bit_length()
+    assert w == other._dtype.bit_length()
+
+    vld = getVldFn(self, other)
+    res = evalFn(self.val, other.val) & vld
+    if self._dtype.signed:
+        res = to_signed(res, w)
+
+    return self._dtype.from_py(res, vld)
+
+
+def bitsCmp__val(self: Bits3val, other: Union[Bits3val, int],
+                 evalFn) -> "Bits3val":
+    t = self._dtype
+    if isinstance(other, int):
+        other = self._dtype.from_py(other)
+        ot = other._dtype
+        w = t.bit_length()
+    else:
+        ot = other._dtype
+        w = t.bit_length()
+        if t.signed != ot.signed or w != ot.bit_length():
+            raise TypeError(t, ot)
+
+    vld = self.vld_mask & other.vld_mask
+    _vld = vld == mask(w)
+    res = evalFn(self.val, other.val) and _vld
+
+    return BOOL.from_py(res, int(_vld))
+
+
+def bitsArithOp__val(self: Bits3val, other: Union[Bits3val, int],
+                     evalFn) -> "Bits3val":
+    if isinstance(other, int):
+        other = self._dtype.from_py(other)
+    v = self.__copy__()
+    self_vld = self._is_full_valid()
+    other_vld = other._is_full_valid()
+
+    v.val = evalFn(self.val, other.val)
+
+    w = v._dtype.bit_length()
+    if self._dtype.signed:
+        _v = v.val
+        _max = mask(w - 1)
+        _min = -_max - 1
+        if _v > _max:
+            _v = _min + (_v - _max - 1)
+        elif _v < _min:
+            _v = _max - (_v - _min + 1)
+
+        v.val = _v
+    else:
+        v.val &= mask(w)
+
+    if self_vld and other_vld:
+        v.vld_mask = mask(w)
+    else:
+        v.vld_mask = 0
+
+    return v
