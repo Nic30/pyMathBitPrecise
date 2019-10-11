@@ -1,4 +1,10 @@
 # pyMathBitPrecise
+[![Build Status](https://travis-ci.org/Nic30/pyMathBitPrecise.svg?branch=master)](https://travis-ci.org/Nic30/hwt)
+[![Coverage Status](https://coveralls.io/repos/github/Nic30/pyMathBitPrecise/badge.svg?branch=master)](https://coveralls.io/github/Nic30/pyMathBitPrecise?branch=master)
+[![PyPI version](https://badge.fury.io/py/pyMathBitPrecise.svg)](http://badge.fury.io/py/pyMathBitPrecise) 
+[![Documentation Status](https://readthedocs.org/projects/pyMathBitPrecise/badge/?version=latest)](http://pyMathBitPrecise.readthedocs.io/en/latest/?badge=latest) 
+[![](https://img.shields.io/github/license/Nic30/pyMathBitPrecise.svg)](https://github.com/Nic30/pyMathBitPrecise)
+[![Python version](https://img.shields.io/pypi/pyversions/pyMathBitPrecise.svg)](https://img.shields.io/pypi/pyversions/pyMathBitPrecise.svg)
 
 This library contains number types of variable bit size and utils for bit manipulations.
 Thre are also types which support tri state values etc. (Python equivalents of VHDL `std_logic_vector`, Verilog `wire`/`reg`.)
