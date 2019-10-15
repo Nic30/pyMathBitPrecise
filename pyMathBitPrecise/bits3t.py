@@ -352,7 +352,7 @@ class Bits3val():
     def __neg__(self):
         assert self._dtype.signed
         v = self.__copy__()
-        _v = v.val
+        _v = -v.val
         _max = self._dtype.all_mask() >> 1
         _min = -_max - 1
         if _v > _max:
