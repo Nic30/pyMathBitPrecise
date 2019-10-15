@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: UTF-8 -*-
+from pyMathBitPrecise.utils import grouper
 
 
 def mask(bits: int):
@@ -167,3 +168,55 @@ def normalize_slice(s, obj_width):
         raise IndexError(s)
 
     return firstBitNo, size
+
+
+def reverseBits(val, width):
+    """
+    Reverse bits in integer value of specified width
+    """
+    v = 0
+    for i in range(width):
+        v |= (selectBit(val, width - i - 1) << i)
+    return v
+
+
+def bitListToInt(bitList):
+    """
+    List of bits (0/1) to a int value
+    little-endian
+    """
+    res = 0
+    for i, r in enumerate(bitList):
+        res |= (r & 0x1) << i
+    return res
+
+
+def extendToSize(collection, items, pad=0):
+    toAdd = items - len(collection)
+    assert toAdd >= 0
+    for _ in range(toAdd):
+        collection.append(pad)
+
+
+def bitListReversedEndianity(bitList):
+    w = len(bitList)
+    i = w
+
+    items = []
+    while i > 0:
+        # take last 8 bytes or rest
+        lower = max(i - 8, 0)
+        b = bitList[lower:i]
+        extendToSize(b, 8)
+        items.extend(b)
+        i -= 8
+
+    return items
+
+
+def bitListReversedBitsInBytes(bitList):
+    assert len(bitList) % 8 == 0
+    tmp = []
+    for db in grouper(8, bitList):
+        tmp.extend(reversed(db))
+    return tmp
