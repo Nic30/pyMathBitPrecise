@@ -155,10 +155,17 @@ def normalize_slice(s, obj_width):
     start, stop, step = s.start, s.stop, s.step
     if step is not None and step != -1:
         raise NotImplementedError(s.step)
+    else:
+        step = -1
     if stop is None:
         stop = 0
+    else:
+        stop = int(stop)
+
     if start is None:
-        start = obj_width
+        start = int(obj_width)
+    else:
+        start = int(start)
     # n...0
     if start <= stop:
         raise IndexError(s)
