@@ -229,7 +229,7 @@ class Bits3val():
             return self
         selfSign = t.signed
         v = self.__copy__()
-        w = t.bit_length
+        w = t.bit_length()
         m = t._all_mask
         _v = v.val
 
