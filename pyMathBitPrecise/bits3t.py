@@ -184,6 +184,8 @@ class Bits3t():
 
 class Bits3val():
     """
+    Class for value of `Bits3t` type
+
     :ivar _dtype: reference on type of this value
     :ivar val: always unsigned representation int value
     :ivar vld_mask: always unsigned value of the mask, if bit in mask is '0'
@@ -194,9 +196,9 @@ class Bits3val():
     def __init__(self, t: Bits3t, val: int, vld_mask: int):
         if not isinstance(t, Bits3t):
             raise TypeError(t)
-        if not isinstance(val, int):
+        if type(val) != int:
             raise TypeError(val)
-        if not isinstance(vld_mask, int):
+        if type(vld_mask) != int:
             raise TypeError(vld_mask)
         self._dtype = t
         self.val = val
@@ -241,7 +243,8 @@ class Bits3val():
             if _v >= msbMask:
                 v.val = -_v + msbMask + (m >> 1) - 1
         v._dtype = v._dtype.__copy__()
-        v.signed = signed
+        v._dtype = self._dtype.__copy__()
+        v._dtype.signed = signed
         return v
 
     def cast(self, t: Bits3t) -> "Bits3val":
@@ -439,8 +442,6 @@ class Bits3val():
             o = int(other)
         except ValidityError:
             o = None
-        if o < 0:
-            raise ValueError("negative shift count")
         v = self.__copy__()
         if o is None:
             v.vld_mask = 0
@@ -448,6 +449,8 @@ class Bits3val():
         elif o == 0:
             return v
         else:
+            if o < 0:
+                raise ValueError("negative shift count")
             w = self._dtype.bit_length()
             v.vld_mask >>= o
             v.vld_mask |= bitField(w - o, w)
@@ -463,14 +466,16 @@ class Bits3val():
             o = int(other)
         except ValidityError:
             o = None
-        if o < 0:
-            raise ValueError("negative shift count")
 
         v = self.__copy__()
         if o is None:
             v.vld_mask = 0
             v.val = 0
+        elif o == 0:
+            return v
         else:
+            if o < 0:
+                raise ValueError("negative shift count")
             t = self._dtype
             m = t.all_mask()
             v.vld_mask <<= o
@@ -589,4 +594,3 @@ def bitsArithOp__val(self: Bits3val, other: Union[Bits3val, int],
         v.vld_mask = 0
 
     return v
-
