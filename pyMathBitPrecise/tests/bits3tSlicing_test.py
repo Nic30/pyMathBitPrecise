@@ -3,7 +3,9 @@
 
 import unittest
 from pyMathBitPrecise.tests.bits3tBaseTC import uint8_t
-from pyMathBitPrecise.bits3t import BIT, Bits3t
+from pyMathBitPrecise.bits3t import Bits3t
+
+BIT = Bits3t(1, name="bit")
 
 
 def vec(val, w):

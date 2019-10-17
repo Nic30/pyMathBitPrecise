@@ -153,7 +153,7 @@ class ValidityError(ValueError):
 
 def normalize_slice(s, obj_width):
     start, stop, step = s.start, s.stop, s.step
-    if step is not None:
+    if step is not None and step != -1:
         raise NotImplementedError(s.step)
     if stop is None:
         stop = 0

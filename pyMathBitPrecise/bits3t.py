@@ -81,14 +81,7 @@ class Bits3t():
                     )
                 )
 
-    def from_py(self, val: Union[int, bytes, str, Enum],
-                vld_mask: Optional[int]=None) -> "Bits3val":
-        """
-        Construct value from pythonic value
-        :note: str value has to start with base specifier (0b, 0h)
-            and is much slower than the value specified
-            by 'val' and 'vld_mask'. Does support x.
-        """
+    def _normalize_val_and_mask(self, val, vld_mask):
         if val is None:
             vld = 0
             val = 0
@@ -164,8 +157,18 @@ class Bits3t():
                         "Not enought bits to represent value",
                         val, val & all_mask)
                 val = val & vld
+        return val, vld
 
-        return Bits3val(self, val, vld)
+    def from_py(self, val: Union[int, bytes, str, Enum],
+                vld_mask: Optional[int]=None) -> "Bits3val":
+        """
+        Construct value from pythonic value
+        :note: str value has to start with base specifier (0b, 0h)
+            and is much slower than the value specified
+            by 'val' and 'vld_mask'. Does support x.
+        """
+        val, vld_mask = self._normalize_val_and_mask(val, vld_mask)
+        return Bits3val(self, val, vld_mask)
 
     def __hash__(self):
         return hash((
@@ -179,10 +182,6 @@ class Bits3t():
         ))
 
 
-BIT = Bits3t(1, name="bit")
-BOOL = Bits3t(1, name="bool")
-
-
 class Bits3val():
     """
     :ivar _dtype: reference on type of this value
@@ -190,6 +189,7 @@ class Bits3val():
     :ivar vld_mask: always unsigned value of the mask, if bit in mask is '0'
             the corresponding bit in val is invalid
     """
+    _BOOL = Bits3t(1, name="bool")
 
     def __init__(self, t: Bits3t, val: int, vld_mask: int):
         if not isinstance(t, Bits3t):
@@ -519,6 +519,10 @@ class Bits3val():
 
         return resT.from_py(v, vld_mask=vld_mask)
 
+    def __repr__(self):
+        return "<{0:s} {1:s}, mask {2:x}>".format(
+            self.__class__.__name__, repr(self.val), self.vld_mask)
+
 
 def bitsBitOp__val(self: Bits3val, other: Union[Bits3val, int],
                    evalFn, getVldFn) -> "Bits3val":
@@ -552,7 +556,7 @@ def bitsCmp__val(self: Bits3val, other: Union[Bits3val, int],
     _vld = vld == mask(w)
     res = evalFn(self.val, other.val) and _vld
 
-    return BOOL.from_py(res, int(_vld))
+    return self._BOOL.from_py(res, int(_vld))
 
 
 def bitsArithOp__val(self: Bits3val, other: Union[Bits3val, int],
@@ -585,3 +589,4 @@ def bitsArithOp__val(self: Bits3val, other: Union[Bits3val, int],
         v.vld_mask = 0
 
     return v
+
