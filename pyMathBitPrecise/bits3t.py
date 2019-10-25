@@ -170,6 +170,9 @@ class Bits3t():
         val, vld_mask = self._normalize_val_and_mask(val, vld_mask)
         return Bits3val(self, val, vld_mask)
 
+    def __getitem__(self, i):
+        raise NotImplementedError()
+
     def __hash__(self):
         return hash((
             self._bit_length,
@@ -367,6 +370,12 @@ class Bits3val():
 
     def __hash__(self):
         return hash((self._dtype, self.val, self.vld_mask))
+
+    def _is(self, other):
+        return isinstance(other, Bits3val)\
+            and self._dtype == other._dtype\
+            and self.val == other.val\
+            and self.vld_mask == other.vld_mask
 
     def __eq__(self, other: Union[int, "Bits3val"]) -> "Bits3val":
         return bitsCmp__val(self, other, eq)
