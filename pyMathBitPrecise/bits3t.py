@@ -11,6 +11,7 @@ from pyMathBitPrecise.bit_utils import mask, selectBit, selectBitRange, \
     ValidityError, normalize_slice
 from pyMathBitPrecise.bits3t_vld_masks import vld_mask_for_xor, vld_mask_for_and, \
     vld_mask_for_or
+from pyMathBitPrecise.array import Array
 
 
 class Bits3t():
@@ -171,7 +172,7 @@ class Bits3t():
         return Bits3val(self, val, vld_mask)
 
     def __getitem__(self, i):
-        raise NotImplementedError()
+        return Array(self, i)
 
     def __hash__(self):
         return hash((
@@ -183,6 +184,33 @@ class Bits3t():
             self.strict_sign,
             self.strict_width
         ))
+
+    def __repr__(self):
+        """
+        :param indent: number of indentation
+        :param withAddr: if is not None is used as a additional
+            information about on which address this type is stored
+            (used only by HStruct)
+        :param expandStructs: expand HStructTypes (used by HStruct and HArray)
+        """
+        constr = []
+        if self.name is not None:
+            constr.append('"%s"' % self.name)
+        c = self.bit_length()
+        constr.append("%dbits" % c)
+        if self.force_vector:
+            constr.append("force_vector")
+        if self.signed:
+            constr.append("signed")
+        elif self.signed is False:
+            constr.append("unsigned")
+        if not self.strict_sign:
+            constr.append("strict_sign=False")
+        if not self.strict_width:
+            constr.append("strict_width=False")
+
+        return "<%s, %s>" % (self.__class__.__name__,
+                             ", ".join(constr))
 
 
 class Bits3val():
@@ -377,7 +405,7 @@ class Bits3val():
             and self.val == other.val\
             and self.vld_mask == other.vld_mask
 
-    def __eq__(self, other: Union[int, "Bits3val"]) -> "Bits3val":
+    def _eq(self, other: Union[int, "Bits3val"]) -> "Bits3val":
         return bitsCmp__val(self, other, eq)
 
     def __req__(self, other: int) -> "Bits3val":
