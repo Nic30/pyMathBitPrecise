@@ -11,7 +11,7 @@ from pyMathBitPrecise.bit_utils import mask, selectBit, selectBitRange, \
     ValidityError, normalize_slice
 from pyMathBitPrecise.bits3t_vld_masks import vld_mask_for_xor, vld_mask_for_and, \
     vld_mask_for_or
-from pyMathBitPrecise.array import Array
+from pyMathBitPrecise.array3t import Array3t
 
 
 class Bits3t():
@@ -172,7 +172,7 @@ class Bits3t():
         return Bits3val(self, val, vld_mask)
 
     def __getitem__(self, i):
-        return Array(self, i)
+        return Array3t(self, i)
 
     def __hash__(self):
         return hash((

@@ -2,7 +2,7 @@ from typing import Optional, Union, Dict, List
 from pyMathBitPrecise.bit_utils import ValidityError
 
 
-class Array():
+class Array3t():
 
     def __init__(self, element_t, size: int, name: Optional[str]=None):
         self.element_t = element_t
@@ -34,12 +34,16 @@ class Array():
                 k = int(k)
                 _val[k] = self.element_t.from_py(v)
             val = _val
-        return ArrayVal(self, val, 1)
+        return Array3val(self, val, 1)
 
 
-class ArrayVal():
+class Array3val():
+    """
+    Value of Array3t
 
-    def __init__(self, t: Array, val, vld_mask: int):
+    :note: use Array3t.from_py if you want to check the the type of val
+    """
+    def __init__(self, t: Array3t, val, vld_mask: int):
         self._dtype = t
         self.val = val
         self.vld_mask = vld_mask
