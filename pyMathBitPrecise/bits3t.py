@@ -377,8 +377,6 @@ class Bits3val():
                 if index is None:
                     self.val = 0
                     self.vld_mask = 0
-                elif index == 0:
-                    pass
                 else:
                     self.val = bitSetTo(self.val, index, v)
                     self.vld_mask = bitSetTo(self.vld_mask, index, m)
