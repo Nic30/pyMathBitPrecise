@@ -562,8 +562,12 @@ class Bits3val():
         return resT.from_py(v, vld_mask=vld_mask)
 
     def __repr__(self):
-        return "<{0:s} {1:s}, mask {2:x}>".format(
-            self.__class__.__name__, repr(self.val), self.vld_mask)
+        if self.vld_mask != self._dtype.all_mask():
+            m = ", mask {0:x}".format(self.vld_mask)
+        else:
+            m = ""
+        return "<{0:s} {1:s}{2:s}>".format(
+            self.__class__.__name__, repr(self.val), m)
 
 
 def bitsBitOp__val(self: Bits3val, other: Union[Bits3val, int],
