@@ -222,7 +222,7 @@ class Bits3val():
     :ivar vld_mask: always unsigned value of the mask, if bit in mask is '0'
             the corresponding bit in val is invalid
     """
-    _BOOL = Bits3t(1, name="bool")
+    _BOOL = Bits3t(1)
 
     def __init__(self, t: Bits3t, val: int, vld_mask: int):
         if not isinstance(t, Bits3t):
@@ -370,9 +370,18 @@ class Bits3val():
                 else:
                     v = value
                     m = 0b1
-
-                self.val = bitSetTo(self.val, index, v)
-                self.vld_mask = bitSetTo(self.vld_mask, index, m)
+                try:
+                    index = int(index)
+                except ValidityError:
+                    index = None
+                if index is None:
+                    self.val = 0
+                    self.vld_mask = 0
+                elif index == 0:
+                    pass
+                else:
+                    self.val = bitSetTo(self.val, index, v)
+                    self.vld_mask = bitSetTo(self.vld_mask, index, m)
 
     def __invert__(self) -> "Bits3val":
         v = self.__copy__()
