@@ -1,5 +1,6 @@
 from collections import OrderedDict
 from typing import List, Optional
+
 from pyMathBitPrecise.bits3t import Bits3val
 
 
@@ -18,7 +19,15 @@ class Enum3val():
         vld_mask = self.vld_mask & other.vld_mask
         return Bits3val._BOOL.from_py(int(val), int(vld_mask))
 
-    def __eq__(self, other):
+    def __ne__(self, other):
+        t = other._dtype
+        if self._dtype is not t:
+            raise TypeError()
+        val = self.val != other.val
+        vld_mask = self.vld_mask & other.vld_mask
+        return Bits3val._BOOL.from_py(int(val), int(vld_mask))
+
+    def _is(self, other):
         return isinstance(other, Enum3val)\
             and other._dtype is self._dtype\
             and self.val == other.val\
