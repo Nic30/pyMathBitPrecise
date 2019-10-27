@@ -15,7 +15,7 @@ class Enum3val():
         if self._dtype is not t:
             raise TypeError()
         val = self.val == other.val
-        vld_mask = self.val & other.val
+        vld_mask = self.vld_mask & other.vld_mask
         return Bits3val._BOOL.from_py(int(val), int(vld_mask))
 
     def __eq__(self, other):
@@ -52,8 +52,8 @@ class Enum3tMeta(type):
             all_values.append(new_v)
 
         enum_class = super().__new__(metacls, cls, bases, classdict)
-        classdict["_all_values"] = all_values
-        classdict["__instance__"] = t_inst = enum_class()
+        enum_class._all_values = all_values
+        enum_class.__instance__ = t_inst = enum_class()
         for v in all_values:
             v._dtype = t_inst
         return enum_class
@@ -67,6 +67,10 @@ class Enum3t(metaclass=Enum3tMeta):
 
     def from_py(self, val: None,
                 vld_mask: Optional[int]=None) -> Enum3val:
+        """
+        :attention: Used only in initialization, use enum class properties
+            if you want to get a value
+        """
         if val is not None or vld_mask is not None:
             raise NotImplementedError()
         return Enum3val(self, None, 0)
