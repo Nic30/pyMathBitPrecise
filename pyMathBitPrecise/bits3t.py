@@ -6,12 +6,12 @@ from math import log2, ceil
 from operator import le, ge, gt, lt, ne, eq, and_, or_, xor, sub, add
 from typing import Union, Optional
 
+from pyMathBitPrecise.array3t import Array3t
 from pyMathBitPrecise.bit_utils import mask, selectBit, selectBitRange, \
     to_signed, setBitRange, bitSetTo, bitField, to_unsigned, INT_BASES, \
     ValidityError, normalize_slice
 from pyMathBitPrecise.bits3t_vld_masks import vld_mask_for_xor, vld_mask_for_and, \
     vld_mask_for_or
-from pyMathBitPrecise.array3t import Array3t
 
 
 class Bits3t():
