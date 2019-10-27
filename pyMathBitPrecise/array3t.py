@@ -67,7 +67,7 @@ class Array3val():
                 return self.val[index]
             except KeyError:
                 pass
-        return self._dtype.from_py(None)
+        return self._dtype.element_t.from_py(None)
 
     def __setitem__(self, index, val):
         try:
