@@ -73,6 +73,8 @@ class Enum3t(metaclass=Enum3tMeta):
     :note: use as normal Python enum.Enum,
         the value is always ignored and name is used as a value
     """
+    def __eq__(self, other):
+        return self.__class__ == other.__class__
 
     def from_py(self, val: None,
                 vld_mask: Optional[int]=None) -> Enum3val:

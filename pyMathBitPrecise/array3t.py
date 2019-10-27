@@ -10,6 +10,12 @@ class Array3t():
         self.size = int(size)
         self.name = name
 
+    def __eq__(self, other):
+        return isinstance(other, self.__class__)\
+            and self.size == other.size\
+            and self.name == other.name\
+            and self.element_t == other.element_t
+
     def bit_length(self) -> int:
         return self.size * self.element_t.bit_length()
 
@@ -44,6 +50,7 @@ class Array3val():
 
     :note: use Array3t.from_py if you want to check the the type of val
     """
+
     def __init__(self, t: Array3t, val, vld_mask: int):
         self._dtype = t
         self.val = val
