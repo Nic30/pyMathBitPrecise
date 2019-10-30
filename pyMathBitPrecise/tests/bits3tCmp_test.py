@@ -13,14 +13,14 @@ class Bits3tCmpTC(Bits3tBaseTC):
         ut = Bits3t(t.bit_length())
         low, up, _, _ = self.getMinMaxVal(t)
         if t.signed:
-            self.assertTrue(t.from_py(-1) == -1)
-        self.assertTrue(t.from_py(0) == 0)
+            self.assertTrue(t.from_py(-1)._eq(-1))
+        self.assertTrue(t.from_py(0)._eq(0))
         self.assertTrue(up == up)
         self.assertTrue(low == low)
 
         if t.signed:
-            self.assertFalse(t.from_py(0) == -1)
-            self.assertFalse(t.from_py(-1) == 0)
+            self.assertFalse(t.from_py(0)._eq(-1))
+            self.assertFalse(t.from_py(-1)._eq(0))
 
         self.assertFalse(t.from_py(0) == 1)
         self.assertFalse(t.from_py(1) == 0)
@@ -30,7 +30,7 @@ class Bits3tCmpTC(Bits3tBaseTC):
 
         if t.signed:
             with self.assertRaises(TypeError):
-                t.from_py(0) == ut.from_py(0)
+                t.from_py(0)._eq(ut.from_py(0))
 
     def test_8b_ne(self, t=int8_t):
         ut = Bits3t(t.bit_length())
