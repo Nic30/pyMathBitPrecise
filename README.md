@@ -23,20 +23,22 @@ uint512_t = Bits3t(512, signed=False)
 a = uint512_t.from_py(1)
 
 # indexing on bits
-assert a[0] == 1
+# [note] == is not overloaded, because it would make the values unhashable
+#        because of support of partially valid values which can not be compared
+assert a[0]._eq(1)
 assert a[0]._dtype.bit_length() == 1
-assert a[1] == 0
-assert a[8:] == 1
+assert a[1]._eq(0)
+assert a[8:]._eq(1)
 assert a[8:]._dtype.bit_length() == 8
 
 # arithmetic
 b = a + 1
-assert b == 2
+assert b._eq(2)
 assert b._dtype == uint512_t
 
 # bitwise operations
 c = a >> 8
-assert c == 0
+assert c.eq(0)
 assert c._dtype == uint512_t
 
 # casting
