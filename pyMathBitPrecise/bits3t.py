@@ -6,6 +6,7 @@ from math import log2, ceil
 from operator import le, ge, gt, lt, ne, eq, and_, or_, xor, sub, add
 from typing import Union, Optional
 
+from pyMathBitPrecise.array3t import Array3t
 from pyMathBitPrecise.bit_utils import mask, selectBit, selectBitRange, \
     to_signed, setBitRange, bitSetTo, bitField, to_unsigned, INT_BASES, \
     ValidityError, normalize_slice
@@ -81,14 +82,7 @@ class Bits3t():
                     )
                 )
 
-    def from_py(self, val: Union[int, bytes, str, Enum],
-                vld_mask: Optional[int]=None) -> "Bits3val":
-        """
-        Construct value from pythonic value
-        :note: str value has to start with base specifier (0b, 0h)
-            and is much slower than the value specified
-            by 'val' and 'vld_mask'. Does support x.
-        """
+    def _normalize_val_and_mask(self, val, vld_mask):
         if val is None:
             vld = 0
             val = 0
@@ -141,7 +135,7 @@ class Bits3t():
                 vld = all_mask
             else:
                 if vld_mask > all_mask or vld_mask < 0:
-                    raise ValueError("Mask in incorrect format")
+                    raise ValueError("Mask in incorrect format", vld_mask)
                 vld = vld_mask
 
             if val < 0:
@@ -164,8 +158,21 @@ class Bits3t():
                         "Not enought bits to represent value",
                         val, val & all_mask)
                 val = val & vld
+        return val, vld
 
-        return Bits3val(self, val, vld)
+    def from_py(self, val: Union[int, bytes, str, Enum],
+                vld_mask: Optional[int]=None) -> "Bits3val":
+        """
+        Construct value from pythonic value
+        :note: str value has to start with base specifier (0b, 0h)
+            and is much slower than the value specified
+            by 'val' and 'vld_mask'. Does support x.
+        """
+        val, vld_mask = self._normalize_val_and_mask(val, vld_mask)
+        return Bits3val(self, val, vld_mask)
+
+    def __getitem__(self, i):
+        return Array3t(self, i)
 
     def __hash__(self):
         return hash((
@@ -178,25 +185,51 @@ class Bits3t():
             self.strict_width
         ))
 
+    def __repr__(self):
+        """
+        :param indent: number of indentation
+        :param withAddr: if is not None is used as a additional
+            information about on which address this type is stored
+            (used only by HStruct)
+        :param expandStructs: expand HStructTypes (used by HStruct and HArray)
+        """
+        constr = []
+        if self.name is not None:
+            constr.append('"%s"' % self.name)
+        c = self.bit_length()
+        constr.append("%dbits" % c)
+        if self.force_vector:
+            constr.append("force_vector")
+        if self.signed:
+            constr.append("signed")
+        elif self.signed is False:
+            constr.append("unsigned")
+        if not self.strict_sign:
+            constr.append("strict_sign=False")
+        if not self.strict_width:
+            constr.append("strict_width=False")
 
-BIT = Bits3t(1, name="bit")
-BOOL = Bits3t(1, name="bool")
+        return "<%s, %s>" % (self.__class__.__name__,
+                             ", ".join(constr))
 
 
 class Bits3val():
     """
+    Class for value of `Bits3t` type
+
     :ivar _dtype: reference on type of this value
     :ivar val: always unsigned representation int value
     :ivar vld_mask: always unsigned value of the mask, if bit in mask is '0'
             the corresponding bit in val is invalid
     """
+    _BOOL = Bits3t(1)
 
     def __init__(self, t: Bits3t, val: int, vld_mask: int):
         if not isinstance(t, Bits3t):
             raise TypeError(t)
-        if not isinstance(val, int):
+        if type(val) != int:
             raise TypeError(val)
-        if not isinstance(vld_mask, int):
+        if type(vld_mask) != int:
             raise TypeError(vld_mask)
         self._dtype = t
         self.val = val
@@ -229,7 +262,7 @@ class Bits3val():
             return self
         selfSign = t.signed
         v = self.__copy__()
-        w = t.bit_length
+        w = t.bit_length()
         m = t._all_mask
         _v = v.val
 
@@ -241,7 +274,8 @@ class Bits3val():
             if _v >= msbMask:
                 v.val = -_v + msbMask + (m >> 1) - 1
         v._dtype = v._dtype.__copy__()
-        v.signed = signed
+        v._dtype = self._dtype.__copy__()
+        v._dtype.signed = signed
         return v
 
     def cast(self, t: Bits3t) -> "Bits3val":
@@ -336,9 +370,16 @@ class Bits3val():
                 else:
                     v = value
                     m = 0b1
-
-                self.val = bitSetTo(self.val, index, v)
-                self.vld_mask = bitSetTo(self.vld_mask, index, m)
+                try:
+                    index = int(index)
+                except ValidityError:
+                    index = None
+                if index is None:
+                    self.val = 0
+                    self.vld_mask = 0
+                else:
+                    self.val = bitSetTo(self.val, index, v)
+                    self.vld_mask = bitSetTo(self.vld_mask, index, m)
 
     def __invert__(self) -> "Bits3val":
         v = self.__copy__()
@@ -365,7 +406,13 @@ class Bits3val():
     def __hash__(self):
         return hash((self._dtype, self.val, self.vld_mask))
 
-    def __eq__(self, other: Union[int, "Bits3val"]) -> "Bits3val":
+    def _is(self, other):
+        return isinstance(other, Bits3val)\
+            and self._dtype == other._dtype\
+            and self.val == other.val\
+            and self.vld_mask == other.vld_mask
+
+    def _eq(self, other: Union[int, "Bits3val"]) -> "Bits3val":
         return bitsCmp__val(self, other, eq)
 
     def __req__(self, other: int) -> "Bits3val":
@@ -439,8 +486,6 @@ class Bits3val():
             o = int(other)
         except ValidityError:
             o = None
-        if o < 0:
-            raise ValueError("negative shift count")
         v = self.__copy__()
         if o is None:
             v.vld_mask = 0
@@ -448,6 +493,8 @@ class Bits3val():
         elif o == 0:
             return v
         else:
+            if o < 0:
+                raise ValueError("negative shift count")
             w = self._dtype.bit_length()
             v.vld_mask >>= o
             v.vld_mask |= bitField(w - o, w)
@@ -463,14 +510,16 @@ class Bits3val():
             o = int(other)
         except ValidityError:
             o = None
-        if o < 0:
-            raise ValueError("negative shift count")
 
         v = self.__copy__()
         if o is None:
             v.vld_mask = 0
             v.val = 0
+        elif o == 0:
+            return v
         else:
+            if o < 0:
+                raise ValueError("negative shift count")
             t = self._dtype
             m = t.all_mask()
             v.vld_mask <<= o
@@ -519,6 +568,14 @@ class Bits3val():
 
         return resT.from_py(v, vld_mask=vld_mask)
 
+    def __repr__(self):
+        if self.vld_mask != self._dtype.all_mask():
+            m = ", mask {0:x}".format(self.vld_mask)
+        else:
+            m = ""
+        return "<{0:s} {1:s}{2:s}>".format(
+            self.__class__.__name__, repr(self.val), m)
+
 
 def bitsBitOp__val(self: Bits3val, other: Union[Bits3val, int],
                    evalFn, getVldFn) -> "Bits3val":
@@ -552,7 +609,7 @@ def bitsCmp__val(self: Bits3val, other: Union[Bits3val, int],
     _vld = vld == mask(w)
     res = evalFn(self.val, other.val) and _vld
 
-    return BOOL.from_py(res, int(_vld))
+    return self._BOOL.from_py(res, int(_vld))
 
 
 def bitsArithOp__val(self: Bits3val, other: Union[Bits3val, int],
