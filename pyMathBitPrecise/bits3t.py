@@ -253,6 +253,9 @@ class Bits3val():
     def __bool__(self) -> bool:
         return bool(self.__int__())
 
+    def _auto_cast(self, dtype):
+        return dtype.from_py(self.val, self.vld_mask)
+
     def cast_sign(self, signed) -> "Bits3val":
         """
         Cast signed-unsigned value
