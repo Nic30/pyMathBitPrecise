@@ -49,3 +49,7 @@ uint8_t = Bits3t(8, signed=False)
 e = a.cast(uint8_t)
 assert e._dtype == uint8_t
 ```
+
+# Similar projects
+
+* [hwtypes](https://github.com/leonardt/hwtypes) - Python implementations of fixed size hardware types
