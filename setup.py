@@ -9,7 +9,7 @@ with open(path.join(this_directory, "README.md")) as f:
     long_description = f.read()
 
 setup(name="pyMathBitPrecise",
-      version="0.1",
+      version="0.2",
       description="number types of variable bit size and utils for bit manipulations",
       long_description=long_description,
       long_description_content_type="text/markdown",
