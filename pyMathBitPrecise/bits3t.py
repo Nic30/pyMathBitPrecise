@@ -156,7 +156,7 @@ class Bits3t():
                 if val & all_mask != val:
                     raise ValueError(
                         "Not enought bits to represent value",
-                        val, val & all_mask)
+                        val, w, val & all_mask)
                 val = val & vld
         return val, vld
 
