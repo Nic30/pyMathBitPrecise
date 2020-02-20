@@ -140,7 +140,7 @@ class Bits3t():
 
             if val < 0:
                 if not self.signed:
-                    raise ValueError("Negative value for positive int")
+                    raise ValueError("Negative value for unsigned int")
                 _val = to_signed(val & all_mask, w)
                 if _val != val:
                     raise ValueError("Too large value", val, _val)
@@ -292,7 +292,7 @@ class Bits3val():
     def cast(self, t: Bits3t) -> "Bits3val":
         """
         C++: static_cast<t>(self)
-        
+
         :note: no sign extension
         """
         v = self.__copy__()
