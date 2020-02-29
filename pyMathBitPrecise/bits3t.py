@@ -632,8 +632,7 @@ def bitsBitOp__val(self: Bits3val, other: Union[Bits3val, int],
     if isinstance(other, int):
         other = self._dtype.from_py(other)
     w = self._dtype.bit_length()
-    assert w == other._dtype.bit_length()
-
+    assert w == other._dtype.bit_length(), (self._dtype, other._dtype)
     vld = getVldFn(self, other)
     res = evalFn(self.val, other.val) & vld
     if self._dtype.signed:
