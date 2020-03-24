@@ -231,8 +231,22 @@ def bitListReversedBitsInBytes(bitList):
 
 
 def byte_list_to_be_int(_bytes: List[int]):
+    """
+    in list LSB first, in result little endian ([1, 0] -> 0x01)
+    """
     v = 0
     for i, b in enumerate(_bytes):
         v |= b << (i * 8)
+
+    return v
+
+
+def bit_list_to_int(bl: List[int]):
+    """
+    in list LSB first, in result little endian ([1, 0] -> 0b01)
+    """
+    v = 0
+    for i, b in enumerate(bl):
+        v |= b << i
 
     return v
