@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: UTF-8 -*-
 from pyMathBitPrecise.utils import grouper
+from typing import List
 
 
 def mask(bits: int):
@@ -227,3 +228,25 @@ def bitListReversedBitsInBytes(bitList):
     for db in grouper(8, bitList):
         tmp.extend(reversed(db))
     return tmp
+
+
+def byte_list_to_be_int(_bytes: List[int]):
+    """
+    in list LSB first, in result little endian ([1, 0] -> 0x01)
+    """
+    v = 0
+    for i, b in enumerate(_bytes):
+        v |= b << (i * 8)
+
+    return v
+
+
+def bit_list_to_int(bl: List[int]):
+    """
+    in list LSB first, in result little endian ([1, 0] -> 0b01)
+    """
+    v = 0
+    for i, b in enumerate(bl):
+        v |= b << i
+
+    return v
