@@ -19,16 +19,16 @@ class Bits3t():
     Meta type for integer of specified size where
     each bit can be '1', '0' or 'X' for undefined value.
 
-    :ivar bit_length: number representation of value of this type
-    :ivar signed: flag which tells if this type is signed or not
-    :ivar _all_mask: cached value of mask for all bits
-    :ivar name: name for anotation
-    :ivar force_vector: use always hdl vector type
+    :ivar ~.bit_length: number representation of value of this type
+    :ivar ~.signed: flag which tells if this type is signed or not
+    :ivar ~._all_mask: cached value of mask for all bits
+    :ivar ~.name: name for anotation
+    :ivar ~.force_vector: use always hdl vector type
             (for example std_logic_vector(0 downto 0)
              instead of std_logic in VHDL,
              wire[1] instead of wire)
-    :ivar strict_sign: same thing as strict_width just for signed/unsigned
-    :ivar strict_width: if True the arithmetic, bitwise
+    :ivar ~.strict_sign: same thing as strict_width just for signed/unsigned
+    :ivar ~.strict_width: if True the arithmetic, bitwise
         and comparision operators can be performed only on value
         of this exact same width
     :note: operation is not strict if at least one operand
@@ -217,9 +217,9 @@ class Bits3val():
     """
     Class for value of `Bits3t` type
 
-    :ivar _dtype: reference on type of this value
-    :ivar val: always unsigned representation int value
-    :ivar vld_mask: always unsigned value of the mask, if bit in mask is '0'
+    :ivar ~._dtype: reference on type of this value
+    :ivar ~.val: always unsigned representation int value
+    :ivar ~.vld_mask: always unsigned value of the mask, if bit in mask is '0'
             the corresponding bit in val is invalid
     """
     _BOOL = Bits3t(1)
