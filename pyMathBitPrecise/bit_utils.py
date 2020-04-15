@@ -261,3 +261,17 @@ def int_list_to_int(il: List[int], item_width: int):
         v |= b << (i * item_width)
 
     return v
+
+
+def int_to_int_list(v: int, item_width: int, number_of_items: int):
+    """
+    opposite of :func:`~.int_list_to_int`
+    """
+    item_mask = mask(item_width)
+    res = []
+    for _ in number_of_items:
+        res.append(v & item_mask)
+        v >>= number_of_items
+
+    assert v == 0, "there is nothing left"
+    return res
