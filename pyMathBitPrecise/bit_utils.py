@@ -232,7 +232,7 @@ def bitListReversedBitsInBytes(bitList):
 
 def byte_list_to_be_int(_bytes: List[int]):
     """
-    in list LSB first, in result little endian ([1, 0] -> 0x01)
+    In input list LSB first, in result little endian ([1, 0] -> 0x01)
     """
     v = 0
     for i, b in enumerate(_bytes):
@@ -243,10 +243,35 @@ def byte_list_to_be_int(_bytes: List[int]):
 
 def bit_list_to_int(bl: List[int]):
     """
-    in list LSB first, in result little endian ([1, 0] -> 0b01)
+    In input list LSB first, in result little endian ([1, 0] -> 0b01)
     """
     v = 0
     for i, b in enumerate(bl):
         v |= b << i
 
     return v
+
+
+def int_list_to_int(il: List[int], item_width: int):
+    """
+    [0x0201, 0x0403] -> 0x04030201
+    """
+    v = 0
+    for i, b in enumerate(il):
+        v |= b << (i * item_width)
+
+    return v
+
+
+def int_to_int_list(v: int, item_width: int, number_of_items: int):
+    """
+    opposite of :func:`~.int_list_to_int`
+    """
+    item_mask = mask(item_width)
+    res = []
+    for _ in number_of_items:
+        res.append(v & item_mask)
+        v >>= number_of_items
+
+    assert v == 0, "there is nothing left"
+    return res

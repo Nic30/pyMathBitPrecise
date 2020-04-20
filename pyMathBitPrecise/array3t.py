@@ -16,6 +16,9 @@ class Array3t():
             and self.name == other.name\
             and self.element_t == other.element_t
 
+    def __getitem__(self, i):
+        return Array3t(self, i)
+
     def bit_length(self) -> int:
         return self.size * self.element_t.bit_length()
 
