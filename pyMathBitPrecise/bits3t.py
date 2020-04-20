@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: UTF-8 -*-
 
+from copy import copy
 from enum import Enum
 from math import log2, ceil
 from operator import le, ge, gt, lt, ne, eq, and_, or_, xor, sub, add
@@ -287,6 +288,8 @@ class Bits3val():
         v._dtype = v._dtype.__copy__()
         v._dtype = self._dtype.__copy__()
         v._dtype.signed = signed
+        if signed is not None:
+            v._dtype.force_vector = True
         return v
 
     def cast(self, t: Bits3t) -> "Bits3val":
@@ -314,7 +317,7 @@ class Bits3val():
         w = self._dtype.bit_length()
         other_w = other._dtype.bit_length()
         resWidth = w + other_w
-        resT = self._dtype.__class__(resWidth, signed=self._dtype.signed)
+        resT = self._dtype.__class__(resWidth, signed=self._dtype.signed, force_vector=True)
 
         v = self.__copy__()
         v.val = (v.val << other_w) | other.val
@@ -325,10 +328,12 @@ class Bits3val():
     def __getitem__(self, key: Union[int, slice, "Bits3val"]) -> "Bits3val":
         "self[key]"
         if isinstance(key, slice):
+            force_vector = True
             firstBitNo, size = normalize_slice(key, self._dtype.bit_length())
             val = selectBitRange(self.val, firstBitNo, size)
             vld = selectBitRange(self.vld_mask, firstBitNo, size)
         elif isinstance(key, (int, Bits3val)):
+            force_vector = False
             size = 1
             try:
                 _i = int(key)
@@ -347,7 +352,7 @@ class Bits3val():
         else:
             raise TypeError(key)
 
-        new_t = self._dtype.__class__(size, signed=self._dtype.signed)
+        new_t = self._dtype.__class__(size, signed=self._dtype.signed, force_vector=force_vector)
         return new_t.from_py(val, vld)
 
     def __setitem__(self, index: Union[slice, int, "Bits3val"],
@@ -615,6 +620,21 @@ class Bits3val():
 
         return resT.from_py(v, vld_mask=vld_mask)
 
+    def _ternary(self, a, b):
+        """
+        a if self else b
+        """
+        try:
+            if self:
+                return a
+            else:
+                return b
+        except ValidityError:
+            pass
+        res = copy(a)
+        res.vld_mask = 0
+        return res
+
     def __repr__(self):
         if self.vld_mask != self._dtype.all_mask():
             m = ", mask {0:x}".format(self.vld_mask)
@@ -697,3 +717,17 @@ def bitsArithOp__val(self: Bits3val, other: Union[Bits3val, int],
         v.vld_mask = 0
 
     return v
+
+
+def bits_neg__val(self: Bits3val):
+    assert self._dtype.signed
+    w = self._dtype.bit_length()
+    _v = -self.val
+    _max = mask(w - 1)
+    _min = -_max - 1
+    if _v > _max:
+        _v = _min + (_v - _max - 1)
+    elif _v < _min:
+        _v = _max - (_v - _min + 1)
+    self.val = _v
+    return self
