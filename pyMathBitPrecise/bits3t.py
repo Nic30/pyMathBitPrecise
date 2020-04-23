@@ -288,8 +288,6 @@ class Bits3val():
         v._dtype = v._dtype.__copy__()
         v._dtype = self._dtype.__copy__()
         v._dtype.signed = signed
-        if signed is not None:
-            v._dtype.force_vector = True
         return v
 
     def cast(self, t: Bits3t) -> "Bits3val":
@@ -317,7 +315,7 @@ class Bits3val():
         w = self._dtype.bit_length()
         other_w = other._dtype.bit_length()
         resWidth = w + other_w
-        resT = self._dtype.__class__(resWidth, signed=self._dtype.signed, force_vector=True)
+        resT = self._dtype.__class__(resWidth, signed=self._dtype.signed)
 
         v = self.__copy__()
         v.val = (v.val << other_w) | other.val
@@ -328,12 +326,10 @@ class Bits3val():
     def __getitem__(self, key: Union[int, slice, "Bits3val"]) -> "Bits3val":
         "self[key]"
         if isinstance(key, slice):
-            force_vector = True
             firstBitNo, size = normalize_slice(key, self._dtype.bit_length())
             val = selectBitRange(self.val, firstBitNo, size)
             vld = selectBitRange(self.vld_mask, firstBitNo, size)
         elif isinstance(key, (int, Bits3val)):
-            force_vector = False
             size = 1
             try:
                 _i = int(key)
@@ -352,7 +348,7 @@ class Bits3val():
         else:
             raise TypeError(key)
 
-        new_t = self._dtype.__class__(size, signed=self._dtype.signed, force_vector=force_vector)
+        new_t = self._dtype.__class__(size, signed=self._dtype.signed)
         return new_t.from_py(val, vld)
 
     def __setitem__(self, index: Union[slice, int, "Bits3val"],
