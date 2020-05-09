@@ -410,7 +410,9 @@ class Bits3val():
 
     def __neg__(self):
         "-"
-        assert self._dtype.signed
+        if not self._dtype.signed:
+            raise TypeError("unsigned")
+
         v = self.__copy__()
         _v = -v.val
         _max = self._dtype.all_mask() >> 1
@@ -714,16 +716,3 @@ def bitsArithOp__val(self: Bits3val, other: Union[Bits3val, int],
 
     return v
 
-
-def bits_neg__val(self: Bits3val):
-    assert self._dtype.signed
-    w = self._dtype.bit_length()
-    _v = -self.val
-    _max = mask(w - 1)
-    _min = -_max - 1
-    if _v > _max:
-        _v = _min + (_v - _max - 1)
-    elif _v < _min:
-        _v = _max - (_v - _min + 1)
-    self.val = _v
-    return self
