@@ -38,7 +38,7 @@ assert b._dtype == uint512_t
 
 # bitwise operations
 c = a >> 8
-assert c.eq(0)
+assert c._eq(0)
 assert c._dtype == uint512_t
 
 # casting
