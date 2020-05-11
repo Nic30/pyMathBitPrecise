@@ -186,21 +186,13 @@ def reverse_bits(val, width):
     return v
 
 
-def bit_list_to_int(bitList):
-    """
-    In input list LSB first, in result little endian ([1, 0] -> 0b01)
-    """
-    res = 0
-    for i, r in enumerate(bitList):
-        res |= (r & 0x1) << i
-    return res
-
-
 def extend_to_size(collection, items, pad=0):
     toAdd = items - len(collection)
     assert toAdd >= 0
     for _ in range(toAdd):
         collection.append(pad)
+
+    return collection
 
 
 def bit_list_reversed_endianity(bitList):
@@ -233,6 +225,16 @@ def byte_list_to_be_int(_bytes: List[int]):
     In input list LSB first, in result little endian ([1, 0] -> 0x0001)
     """
     return int_list_to_int(_bytes, 8)
+
+
+def bit_list_to_int(bitList):
+    """
+    In input list LSB first, in result little endian ([0, 1] -> 0b10)
+    """
+    res = 0
+    for i, r in enumerate(bitList):
+        res |= (r & 0x1) << i
+    return res
 
 
 def int_list_to_int(il: List[int], item_width: int):
