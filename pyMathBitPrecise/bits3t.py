@@ -100,11 +100,11 @@ class Bits3t():
 
                 base = INT_BASES[val[1]]
                 try:
-                    val = int(val[2:], base)
+                    _val = int(val[2:], base)
                 except ValueError:
-                    val = None
+                    _val = None
 
-                if val is None:
+                if _val is None:
                     assert vld_mask is None
                     val = val.lower()
                     if base == 10 and "x" in val:
@@ -117,12 +117,14 @@ class Bits3t():
                         v <<= bits_per_char
                         m <<= bits_per_char
                         if digit == "x":
-                            m = 0
+                            pass
                         else:
-                            m = char_mask
+                            m |= char_mask
                             v |= int(digit, base)
                     val = v
                     vld_mask = m
+                else:
+                    val = _val
             else:
                 try:
                     val = int(val)
