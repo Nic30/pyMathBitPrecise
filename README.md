@@ -11,7 +11,6 @@ It also contains types with support for tri state values etc. (Python equivalent
 
 This may be usefull for tools which are simulating hardware or software which needs numbers of exact size.
 
-
 ## Example
 
 ```Python
