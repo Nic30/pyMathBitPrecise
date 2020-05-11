@@ -254,9 +254,9 @@ def int_to_int_list(v: int, item_width: int, number_of_items: int):
     """
     item_mask = mask(item_width)
     res = []
-    for _ in number_of_items:
+    for _ in range(number_of_items):
         res.append(v & item_mask)
-        v >>= number_of_items
+        v >>= item_width
 
     assert v == 0, "there is nothing left"
     return res
