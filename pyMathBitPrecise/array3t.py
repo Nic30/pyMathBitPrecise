@@ -32,19 +32,26 @@ class Array3t():
         """
         if val is None:
             val = {}
+            vld_mask = 0
         elif isinstance(val, dict):
             _val = {}
             for k, v in val.items():
                 k = int(k)
+                if k < 0:
+                    raise ValueError("item index < 0", k)
+
+                if k >= self.size:
+                    raise ValueError("item index >= array size", k)
                 _val[k] = self.element_t.from_py(v)
             val = _val
         else:
             _val = {}
             for k, v in enumerate(val):
-                k = int(k)
+                if k >= self.size:
+                    raise ValueError("item index >= array size", k)
                 _val[k] = self.element_t.from_py(v)
             val = _val
-        return Array3val(self, val, 1)
+        return Array3val(self, val, int(bool(vld_mask)))
 
 
 class Array3val():
@@ -52,12 +59,16 @@ class Array3val():
     Value of Array3t
 
     :note: use Array3t.from_py if you want to check the the type of val
+    :ivar vld_mask: if 0 the value is entirely invalid else some item may be valid
     """
 
-    def __init__(self, t: Array3t, val, vld_mask: int):
+    def __init__(self, t: Array3t, val: Dict[int, object], vld_mask: int):
         self._dtype = t
         self.val = val
         self.vld_mask = vld_mask
+
+    def __len__(self):
+        return self._dtype.size
 
     def __getitem__(self, index):
         try:
@@ -70,6 +81,8 @@ class Array3val():
                 return self.val[index]
             except KeyError:
                 pass
+            if index > self._dtype.size:
+                raise IndexError(index)
         return self._dtype.element_t.from_py(None)
 
     def __setitem__(self, index, val):
@@ -90,3 +103,6 @@ class Array3val():
             val = self._dtype.element_t.from_py(val)
 
         self.val[index] = val
+
+    def __repr__(self):
+        return "<%s %r>" % (self.__class__.__name__, self.val)

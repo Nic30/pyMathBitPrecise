@@ -70,7 +70,7 @@ class Enum3tMeta(type):
 
 class Enum3t(metaclass=Enum3tMeta):
     """
-    :note: use as normal Python enum.Enum,
+    :note: use as Python enum.Enum,
         the value is always ignored and name is used as a value
     """
     def __eq__(self, other):
