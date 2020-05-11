@@ -8,8 +8,8 @@ from operator import le, ge, gt, lt, ne, eq, and_, or_, xor, sub, add
 from typing import Union, Optional
 
 from pyMathBitPrecise.array3t import Array3t
-from pyMathBitPrecise.bit_utils import mask, selectBit, selectBitRange, \
-    to_signed, setBitRange, bitSetTo, bitField, to_unsigned, INT_BASES, \
+from pyMathBitPrecise.bit_utils import mask, get_bit, get_bit_range, \
+    to_signed, set_bit_range, bit_set_to, bit_field, to_unsigned, INT_BASES, \
     ValidityError, normalize_slice
 from pyMathBitPrecise.bits3t_vld_masks import vld_mask_for_xor, vld_mask_for_and, \
     vld_mask_for_or
@@ -329,8 +329,8 @@ class Bits3val():
         "self[key]"
         if isinstance(key, slice):
             firstBitNo, size = normalize_slice(key, self._dtype.bit_length())
-            val = selectBitRange(self.val, firstBitNo, size)
-            vld = selectBitRange(self.vld_mask, firstBitNo, size)
+            val = get_bit_range(self.val, firstBitNo, size)
+            vld = get_bit_range(self.vld_mask, firstBitNo, size)
         elif isinstance(key, (int, Bits3val)):
             size = 1
             try:
@@ -345,8 +345,8 @@ class Bits3val():
                 if _i < 0 or _i >= self._dtype.bit_length():
                     raise IndexError("Index out of range", _i)
 
-                val = selectBit(self.val, _i)
-                vld = selectBit(self.vld_mask, _i)
+                val = get_bit(self.val, _i)
+                vld = get_bit(self.vld_mask, _i)
         else:
             raise TypeError(key)
 
@@ -365,8 +365,8 @@ class Bits3val():
                 v = value
                 m = mask(size)
 
-            self.val = setBitRange(self.val, firstBitNo, size, v)
-            self.vld_mask = setBitRange(
+            self.val = set_bit_range(self.val, firstBitNo, size, v)
+            self.vld_mask = set_bit_range(
                 self.vld_mask, firstBitNo, size, m)
         else:
             if index is None:
@@ -397,8 +397,8 @@ class Bits3val():
                     self.val = 0
                     self.vld_mask = 0
                 else:
-                    self.val = bitSetTo(self.val, index, v)
-                    self.vld_mask = bitSetTo(self.vld_mask, index, m)
+                    self.val = bit_set_to(self.val, index, v)
+                    self.vld_mask = bit_set_to(self.vld_mask, index, m)
 
     def __invert__(self) -> "Bits3val":
         "~"
@@ -547,7 +547,7 @@ class Bits3val():
                 raise ValueError("negative shift count")
             w = self._dtype.bit_length()
             v.vld_mask >>= o
-            v.vld_mask |= bitField(w - o, w)
+            v.vld_mask |= bit_field(w - o, w)
             if v.val < 0:
                 assert self._dtype.signed
                 v.val = to_unsigned(v.val, w)
