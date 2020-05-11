@@ -105,6 +105,12 @@ class Bits3tBitwiseTC(Bits3tBaseTC):
             else:
                 self.assertEqual(t.from_py(m) >> i, m >> i)
 
+    def test_8b_16b_concat(self):
+        t0 = uint8_t
+        t1 = Bits3t(16)
+        self.assertEqual(int(t0.from_py(0xff)._concat(
+            t1.from_py(1))), (0xff << 16) | 1)
+
     def test_512b_and(self):
         self.test_8b_and(int512_t)
 
