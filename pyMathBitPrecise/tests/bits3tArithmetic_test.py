@@ -102,6 +102,7 @@ class Bits3tArithmeticTC(Bits3tBaseTC):
         self.assertEqual((t.from_py(0) // t.from_py(1)), 0)
         self.assertEqual((t.from_py(1) // t.from_py(1)), 1)
         self.assertEqual((t.from_py(8) // t.from_py(2)), 4)
+        self.assertEqual((t.from_py(8) // 2), 4)
         self.assertEqual((t.from_py(8) // t.from_py(None)).vld_mask, 0)
         self.assertEqual((t.from_py(None) // t.from_py(2)).vld_mask, 0)
         if t.signed:
