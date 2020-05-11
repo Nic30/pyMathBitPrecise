@@ -23,7 +23,7 @@ class Array3t():
         return self.size * self.element_t.bit_length()
 
     def from_py(self, val: Union[List["value"], Dict[int, "value"], None],
-                vld_mask: Optional[int]=None) -> "ArrayVal":
+                vld_mask: Optional[int]=None) -> "Array3val":
         """
         Construct value from pythonic value
         :note: str value has to start with base specifier (0b, 0h)
@@ -56,18 +56,24 @@ class Array3t():
 
 class Array3val():
     """
-    Value of Array3t
+    Value of Array3t.
 
     :note: use Array3t.from_py if you want to check the the type of val
     :ivar vld_mask: if 0 the value is entirely invalid else some item may be valid
     """
 
     def __init__(self, t: Array3t, val: Dict[int, object], vld_mask: int):
+        """
+        :param t: type of this value
+        :param val: dict with items of this array
+        :param vld_mask: validity flag for this value
+        """
         self._dtype = t
         self.val = val
         self.vld_mask = vld_mask
 
     def __len__(self):
+        ":return: size of this array"
         return self._dtype.size
 
     def __getitem__(self, index):

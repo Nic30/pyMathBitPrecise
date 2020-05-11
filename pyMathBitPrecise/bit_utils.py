@@ -212,7 +212,7 @@ def bit_list_reversed_endianity(bitList):
 
 
 def bit_list_reversed_bits_in_bytes(bitList):
-    "byte reflection  (0x0f -> 0xf0)"
+    "Byte reflection  (0x0f -> 0xf0)"
     assert len(bitList) % 8 == 0
     tmp = []
     for db in grouper(8, bitList):

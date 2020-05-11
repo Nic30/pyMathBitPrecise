@@ -51,4 +51,4 @@ assert e._dtype == uint8_t
 
 ## Similar projects
 
-* [hwtypes](https://github.com/leonardt/hwtypes) - Python implementations of fixed size hardware types
+  * [hwtypes](https://github.com/leonardt/hwtypes) - Python implementations of fixed size hardware types

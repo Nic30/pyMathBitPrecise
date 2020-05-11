@@ -175,6 +175,7 @@ class Bits3t():
         return Bits3val(self, val, vld_mask)
 
     def __getitem__(self, i):
+        ":return: an item from this array"
         return Array3t(self, i)
 
     def __hash__(self):
@@ -355,7 +356,7 @@ class Bits3val():
 
     def __setitem__(self, index: Union[slice, int, "Bits3val"],
                     value: Union["Bits3val", int]):
-        "self[index] = value"
+        "An item assignment operator self[index] = value."
         if isinstance(index, slice):
             firstBitNo, size = normalize_slice(index, self._dtype.bit_length())
             if isinstance(value, Bits3val):
@@ -401,7 +402,7 @@ class Bits3val():
                     self.vld_mask = bit_set_to(self.vld_mask, index, m)
 
     def __invert__(self) -> "Bits3val":
-        "~"
+        "Operator ~x."
         v = self.__copy__()
         v.val = ~v.val
         w = v._dtype.bit_length()
@@ -411,7 +412,7 @@ class Bits3val():
         return v
 
     def __neg__(self):
-        "-"
+        "Operator -x."
         if not self._dtype.signed:
             raise TypeError("unsigned")
 
@@ -438,100 +439,100 @@ class Bits3val():
 
     def _eq(self, other: Union[int, "Bits3val"]) -> "Bits3val":
         """
-        self._eq(other) as self == other
+        Operator self._eq(other) as self == other
         == is not overriden in order to prevent tricky behavior if hashing partially valid values
         """
         return bitsCmp__val(self, other, eq)
 
     def __req__(self, other: int) -> "Bits3val":
-        "=="
+        "Operator ==."
         return bitsCmp__val(self._dtype.from_py(other), self, eq)
 
     def __ne__(self, other: Union[int, "Bits3val"]) -> "Bits3val":
-        "!="
+        "Operator !=."
         return bitsCmp__val(self, other, ne)
 
     def __rne__(self, other: int) -> "Bits3val":
-        "!="
+        "Operator !=."
         return bitsCmp__val(self._dtype.from_py(other), self, ne)
 
     def __lt__(self, other: Union[int, "Bits3val"]) -> "Bits3val":
-        "<"
+        "Operator <."
         return bitsCmp__val(self, other, lt)
 
     def __rlt__(self, other: int) -> "Bits3val":
-        "<"
+        "Operator <."
         return bitsCmp__val(self._dtype.from_py(other), self, lt)
 
     def __gt__(self, other: Union[int, "Bits3val"]) -> "Bits3val":
-        ">"
+        "Operator >."
         return bitsCmp__val(self, other, gt)
 
     def __rgt__(self, other: int) -> "Bits3val":
-        ">"
+        "Operator >."
         return bitsCmp__val(self._dtype.from_py(other), self, gt)
 
     def __ge__(self, other: Union[int, "Bits3val"]) -> "Bits3val":
-        ">="
+        "Operator >=."
         return bitsCmp__val(self, other, ge)
 
     def __rge__(self, other: int) -> "Bits3val":
-        ">="
+        "Operator >=."
         return bitsCmp__val(self._dtype.from_py(other), self, ge)
 
     def __le__(self, other: Union[int, "Bits3val"]) -> "Bits3val":
-        "<="
+        "Operator <=."
         return bitsCmp__val(self, other, le)
 
     def __rle__(self, other: int) -> "Bits3val":
-        "<="
+        "Operator <=."
         return bitsCmp__val(self._dtype.from_py(other), self, le)
 
     def __xor__(self, other: Union[int, "Bits3val"]) -> "Bits3val":
-        "^"
+        "Operator ^."
         return bitsBitOp__val(self, other, xor, vld_mask_for_xor)
 
     def __rxor__(self, other: int) -> "Bits3val":
-        "^"
+        "Operator ^."
         return bitsBitOp__val(self._dtype.from_py(other), self, xor,
                               vld_mask_for_xor)
 
     def __and__(self, other: Union[int, "Bits3val"]) -> "Bits3val":
-        "&"
+        "Operator &."
         return bitsBitOp__val(self, other, and_, vld_mask_for_and)
 
     def __rand__(self, other: int) -> "Bits3val":
-        "&"
+        "Operator &."
         return bitsBitOp__val(self._dtype.from_py(other), self, and_,
                               vld_mask_for_and)
 
     def __or__(self, other: Union[int, "Bits3val"]) -> "Bits3val":
-        "|"
+        "Operator |."
         return bitsBitOp__val(self, other, or_, vld_mask_for_or)
 
     def __ror__(self, other: int) -> "Bits3val":
-        "|"
+        "Operator |."
         return bitsBitOp__val(self._dtype.from_py(other), self, or_,
                               vld_mask_for_or)
 
     def __sub__(self, other: Union[int, "Bits3val"]) -> "Bits3val":
-        "-"
+        "Operator -."
         return bitsArithOp__val(self, other, sub)
 
     def __rsub__(self, other: Union[int, "Bits3val"]) -> "Bits3val":
-        "-"
+        "Operator -."
         return bitsArithOp__val(self._dtype.from_py(other), self, sub)
 
     def __add__(self, other: Union[int, "Bits3val"]) -> "Bits3val":
-        "+"
+        "Operator +."
         return bitsArithOp__val(self, other, add)
 
     def __radd__(self, other: Union[int, "Bits3val"]) -> "Bits3val":
-        "+"
+        "Operator +."
         return bitsArithOp__val(self._dtype.from_py(other), self, add)
 
     def __rshift__(self, other: Union[int, "Bits3val"]) -> "Bits3val":
-        ">>"
+        "Operator >>."
         try:
             o = int(other)
         except ValidityError:
@@ -556,7 +557,7 @@ class Bits3val():
         return v
 
     def __lshift__(self, other: Union[int, "Bits3val"]) -> "Bits3val":
-        "<<"
+        "Operator <<."
         try:
             o = int(other)
         except ValidityError:
@@ -583,7 +584,7 @@ class Bits3val():
         return v
 
     def __floordiv__(self, other: Union[int, "Bits3val"]) -> "Bits3val":
-        "//"
+        "Operator //."
         other_is_int = isinstance(other, int)
         if other_is_int:
             v = self.val // other
@@ -598,6 +599,7 @@ class Bits3val():
         return self._dtype.from_py(v, m)
 
     def __mul__(self, other: Union[int, "Bits3val"]) -> "Bits3val":
+        "Operator *."
         # [TODO] resT should be wider
         resT = self._dtype
         other_is_int = isinstance(other, int)
@@ -622,7 +624,7 @@ class Bits3val():
 
     def _ternary(self, a, b):
         """
-        a if self else b
+        Ternary operator (a if self else b).
         """
         try:
             if self:
