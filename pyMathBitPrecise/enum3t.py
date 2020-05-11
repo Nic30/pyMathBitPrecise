@@ -95,16 +95,3 @@ def define_Enum3t(name: str, values: List[str]):
     for v in values:
         cls_dict[v] = None
     return type(name, (Enum3t,), cls_dict)
-
-
-if __name__ == "__main__":
-
-    class MyEnum(Enum3t):
-        A = None
-        C = None
-        B = None
-
-    MyEnum2 = define_Enum3t("MyEnum2", ["x", "y", "z"])
-
-    print(MyEnum.A)
-    print(MyEnum2.z)

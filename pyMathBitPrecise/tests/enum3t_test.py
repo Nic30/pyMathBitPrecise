@@ -12,8 +12,12 @@ class Enum3tTC(unittest.TestCase):
         self.assertIsInstance(Enum0.A, Enum3val)
         self.assertIsInstance(Enum1.A, Enum3val)
         self.assertEqual(Enum0.A, Enum0.A)
-        self.assertNotEqual(Enum0.A, Enum0.B)
+        self.assertTrue(Enum0.A._eq(Enum0.A))
+        self.assertFalse(Enum0.A._eq(Enum0.B))
+        with self.assertRaises(TypeError):
+            Enum0.A._eq(Enum1.B)
 
+        self.assertNotEqual(Enum0.A, Enum0.B)
         with self.assertRaises(TypeError):
             Enum0.A != Enum1.A
         r = Enum0.A != Enum3val(Enum0.C._dtype, None, 0)
