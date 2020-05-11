@@ -98,6 +98,20 @@ class Bits3tArithmeticTC(Bits3tBaseTC):
             with self.assertRaises(TypeError):
                 -t.from_py(0)
 
+    def test_8b_div(self, t=int8_t):
+        self.assertEqual((t.from_py(0) // t.from_py(1)), 0)
+        self.assertEqual((t.from_py(1) // t.from_py(1)), 1)
+        self.assertEqual((t.from_py(8) // t.from_py(2)), 4)
+        self.assertEqual((t.from_py(8) // t.from_py(None)).vld_mask, 0)
+        self.assertEqual((t.from_py(None) // t.from_py(2)).vld_mask, 0)
+        if t.signed:
+            self.assertEqual((t.from_py(-1) // t.from_py(1)), -1)
+            self.assertEqual((t.from_py(1) // t.from_py(-1)), -1)
+            self.assertEqual((t.from_py(-1) // t.from_py(-1)), 1)
+
+    def test_u8b_div(self, t=uint8_t):
+        self.test_8b_div(t)
+
     def test_512b_add(self):
         self.test_8b_add(int512_t)
 
