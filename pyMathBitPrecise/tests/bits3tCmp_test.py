@@ -141,6 +141,12 @@ class Bits3tCmpTC(Bits3tBaseTC):
             with self.assertRaises(TypeError):
                 t.from_py(0) <= ut.from_py(0)
 
+    def test_8b_ternary(self, t=int8_t):
+        self.assertFalse(t.from_py(0)._ternary(True, False))
+        self.assertTrue(t.from_py(0)._ternary(False, True))
+        self.assertFalse(t.from_py(1)._ternary(False, True))
+        self.assertTrue(t.from_py(1)._ternary(True, False))
+
     def test_512b_eq(self):
         self.test_8b_eq(int512_t)
 

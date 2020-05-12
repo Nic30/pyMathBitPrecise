@@ -1,19 +1,17 @@
 #!/usr/bin/env python3
 # -*- coding: UTF-8 -*-
 from pyMathBitPrecise.utils import grouper
-from typing import List
+from typing import List, Tuple, Generator
 
 
-def mask(bits: int):
+def mask(bits: int) -> int:
     """
-    Generate mask of sepcified size (sequence of '1')
-
-    :type bits: int
+    Generate mask of specified size (sequence of '1')
     """
     return (1 << bits) - 1
 
 
-def bitField(_from: int, to: int):
+def bit_field(_from: int, to: int) -> int:
     """
     Generate int which has bits '_from' to 'to' set to '1'
 
@@ -23,14 +21,14 @@ def bitField(_from: int, to: int):
     return mask(w) << _from
 
 
-def selectBit(val: int, bitNo: int):
+def get_bit(val: int, bitNo: int) -> int:
     """
     Get bit from int
     """
     return (val >> bitNo) & 1
 
 
-def selectBitRange(val: int, bitsStart: int, bitsLen: int):
+def get_bit_range(val: int, bitsStart: int, bitsLen: int) -> int:
     """
     Get sequence of bits from an int value
     """
@@ -38,28 +36,28 @@ def selectBitRange(val: int, bitsStart: int, bitsLen: int):
     return val & mask(bitsLen)
 
 
-def cleanBit(val: int, bitNo: int):
+def clean_bit(val: int, bitNo: int) -> int:
     """
     Set a specified bit to '0'
     """
     return val & ~(1 << bitNo)
 
 
-def setBit(val: int, bitNo: int):
+def set_bit(val: int, bitNo: int) -> int:
     """
     Set a specified bit to '1'
     """
     return val | (1 << bitNo)
 
 
-def toogleBit(val: int, bitNo: int):
+def toggle_bit(val: int, bitNo: int) -> int:
     """
-    Toogle specified bit in int
+    Toggle specified bit in int
     """
     return val ^ (1 << bitNo)
 
 
-def setBitRange(val: int, bitStart: int, bitsLen: int, newBits: int):
+def set_bit_range(val: int, bitStart: int, bitsLen: int, newBits: int) -> int:
     """
     Set specified range of bits in int to a specified value
     """
@@ -72,27 +70,27 @@ def setBitRange(val: int, bitStart: int, bitsLen: int, newBits: int):
     return (val & ~_mask) | newBits
 
 
-def bitSetTo(val: int, bitNo: int, bitVal: int):
+def bit_set_to(val: int, bitNo: int, bitVal: int) -> int:
     """
     Set specified bit in int to a specified value
     """
     if bitVal == 0:
-        return cleanBit(val, bitNo)
+        return clean_bit(val, bitNo)
     elif bitVal == 1:
-        return setBit(val, bitNo)
+        return set_bit(val, bitNo)
     else:
         raise ValueError(("Invalid value of bit to set", bitVal))
 
 
-def align(val: int, lowerBitCntToAlign: int):
+def align(val: int, lowerBitCntToAlign: int) -> int:
     """
-    Cut off lower bits to aligin a int value.
+    Cut off lower bits to align a int value.
     """
     val = val >> lowerBitCntToAlign
     return val << lowerBitCntToAlign
 
 
-def iter_bits(val, length):
+def iter_bits(val: int, length: int) -> Generator[int, int, None]:
     """
     Iterate bits in int.
     """
@@ -101,9 +99,9 @@ def iter_bits(val, length):
         val >>= 1
 
 
-def to_signed(val, width):
+def to_signed(val: int, width: int) -> int:
     """
-    Convert too large positive int to negative int which has same bits set.
+    Convert unsigned int to negative int which has same bits set (emulate sign overflow).
 
     :note: bits in value are not changed, just python int object
         has signed flag set properly. And number is in expected range.
@@ -115,18 +113,18 @@ def to_signed(val, width):
     return val
 
 
-def to_unsigned(val, width):
+def to_unsigned(val, width) -> int:
     if val < 0:
         return val & mask(width)
     else:
         return val
 
 
-def mask_bytes(val, byte_mask, mask_bit_length):
+def mask_bytes(val: int, byte_mask: int, mask_bit_length: int) -> int:
     """
     Use each bit in byte_mask as a mask for each byte in val.
 
-    :note: Usefull for masking of value for HW interfaces where mask
+    :note: Useful for masking of value for HW interfaces where mask
         is represented by a vector of bits where each bit is mask
         for byte in data vector.
     """
@@ -152,7 +150,7 @@ class ValidityError(ValueError):
     """
 
 
-def normalize_slice(s, obj_width):
+def normalize_slice(s: slice, obj_width: int) -> Tuple[int, int]:
     start, stop, step = s.start, s.stop, s.step
     if step is not None and step != -1:
         raise NotImplementedError(s.step)
@@ -178,35 +176,26 @@ def normalize_slice(s, obj_width):
     return firstBitNo, size
 
 
-def reverseBits(val, width):
+def reverse_bits(val, width):
     """
     Reverse bits in integer value of specified width
     """
     v = 0
     for i in range(width):
-        v |= (selectBit(val, width - i - 1) << i)
+        v |= (get_bit(val, width - i - 1) << i)
     return v
 
 
-def bitListToInt(bitList):
-    """
-    List of bits (0/1) to a int value
-    little-endian
-    """
-    res = 0
-    for i, r in enumerate(bitList):
-        res |= (r & 0x1) << i
-    return res
-
-
-def extendToSize(collection, items, pad=0):
+def extend_to_size(collection, items, pad=0):
     toAdd = items - len(collection)
     assert toAdd >= 0
     for _ in range(toAdd):
         collection.append(pad)
 
+    return collection
 
-def bitListReversedEndianity(bitList):
+
+def bit_list_reversed_endianity(bitList):
     w = len(bitList)
     i = w
 
@@ -215,14 +204,15 @@ def bitListReversedEndianity(bitList):
         # take last 8 bytes or rest
         lower = max(i - 8, 0)
         b = bitList[lower:i]
-        extendToSize(b, 8)
+        extend_to_size(b, 8)
         items.extend(b)
         i -= 8
 
     return items
 
 
-def bitListReversedBitsInBytes(bitList):
+def bit_list_reversed_bits_in_bytes(bitList):
+    "Byte reflection  (0x0f -> 0xf0)"
     assert len(bitList) % 8 == 0
     tmp = []
     for db in grouper(8, bitList):
@@ -232,21 +222,41 @@ def bitListReversedBitsInBytes(bitList):
 
 def byte_list_to_be_int(_bytes: List[int]):
     """
-    in list LSB first, in result little endian ([1, 0] -> 0x01)
+    In input list LSB first, in result little endian ([1, 0] -> 0x0001)
+    """
+    return int_list_to_int(_bytes, 8)
+
+
+def bit_list_to_int(bitList):
+    """
+    In input list LSB first, in result little endian ([0, 1] -> 0b10)
+    """
+    res = 0
+    for i, r in enumerate(bitList):
+        res |= (r & 0x1) << i
+    return res
+
+
+def int_list_to_int(il: List[int], item_width: int):
+    """
+    [0x0201, 0x0403] -> 0x04030201
     """
     v = 0
-    for i, b in enumerate(_bytes):
-        v |= b << (i * 8)
+    for i, b in enumerate(il):
+        v |= b << (i * item_width)
 
     return v
 
 
-def bit_list_to_int(bl: List[int]):
+def int_to_int_list(v: int, item_width: int, number_of_items: int):
     """
-    in list LSB first, in result little endian ([1, 0] -> 0b01)
+    opposite of :func:`~.int_list_to_int`
     """
-    v = 0
-    for i, b in enumerate(bl):
-        v |= b << i
+    item_mask = mask(item_width)
+    res = []
+    for _ in range(number_of_items):
+        res.append(v & item_mask)
+        v >>= item_width
 
-    return v
+    assert v == 0, "there is nothing left"
+    return res

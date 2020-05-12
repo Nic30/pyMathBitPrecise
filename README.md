@@ -6,11 +6,10 @@
 [![](https://img.shields.io/github/license/Nic30/pyMathBitPrecise.svg)](https://github.com/Nic30/pyMathBitPrecise)
 [![Python version](https://img.shields.io/pypi/pyversions/pyMathBitPrecise.svg)](https://img.shields.io/pypi/pyversions/pyMathBitPrecise.svg)
 
-This library contains number types of variable bit size and utils for bit manipulations.
-Thre are also types which support tri state values etc. (Python equivalents of VHDL `std_logic_vector`, Verilog `wire`/`reg`.)
+This library contains data types of fixed bit size and utils for bit manipulations.
+It also contains types with support for tri state values etc. (Python equivalents of VHDL `std_logic_vector`, Verilog `wire`/`reg`.)
 
 This may be usefull for tools which are simulating hardware or software which needs numbers of exact size.
-
 
 ## Example
 
@@ -38,7 +37,7 @@ assert b._dtype == uint512_t
 
 # bitwise operations
 c = a >> 8
-assert c.eq(0)
+assert c._eq(0)
 assert c._dtype == uint512_t
 
 # casting
@@ -50,6 +49,6 @@ e = a.cast(uint8_t)
 assert e._dtype == uint8_t
 ```
 
-# Similar projects
+## Similar projects
 
-* [hwtypes](https://github.com/leonardt/hwtypes) - Python implementations of fixed size hardware types
+  * [hwtypes](https://github.com/leonardt/hwtypes) - Python implementations of fixed size hardware types

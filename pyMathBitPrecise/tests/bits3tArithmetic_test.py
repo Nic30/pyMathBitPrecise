@@ -79,6 +79,40 @@ class Bits3tArithmeticTC(Bits3tBaseTC):
         m = up * t.from_py(None)
         ae(valToInt(m), None)
 
+    def test_8b_neg(self, t=int8_t):
+        w = t.bit_length()
+        low, up, _, _ = self.getMinMaxVal(t)
+
+        ae = self.assertEqual
+        if t.signed:
+            m1 = t.from_py(-1)
+            ae(int(m1), -1)
+            ae(int(-m1), 1)
+
+            ae(int(-t.from_py(2)), -2)
+            ae(int(-t.from_py(-2)), 2)
+
+            ae(int(-low),  int(low))
+            ae(int(-up),  -mask(w - 1))
+        else:
+            with self.assertRaises(TypeError):
+                -t.from_py(0)
+
+    def test_8b_div(self, t=int8_t):
+        self.assertEqual((t.from_py(0) // t.from_py(1)), 0)
+        self.assertEqual((t.from_py(1) // t.from_py(1)), 1)
+        self.assertEqual((t.from_py(8) // t.from_py(2)), 4)
+        self.assertEqual((t.from_py(8) // 2), 4)
+        self.assertEqual((t.from_py(8) // t.from_py(None)).vld_mask, 0)
+        self.assertEqual((t.from_py(None) // t.from_py(2)).vld_mask, 0)
+        if t.signed:
+            self.assertEqual((t.from_py(-1) // t.from_py(1)), -1)
+            self.assertEqual((t.from_py(1) // t.from_py(-1)), -1)
+            self.assertEqual((t.from_py(-1) // t.from_py(-1)), 1)
+
+    def test_u8b_div(self, t=uint8_t):
+        self.test_8b_div(t)
+
     def test_512b_add(self):
         self.test_8b_add(int512_t)
 
@@ -105,6 +139,15 @@ class Bits3tArithmeticTC(Bits3tBaseTC):
 
     def test_u8b_mul(self):
         self.test_8b_mul(uint8_t)
+
+    def test_u8b_neg(self, t=uint8_t):
+        self.test_8b_neg(t)
+
+    def test_512b_neg(self, t=int512_t):
+        self.test_8b_neg(t)
+
+    def test_u512b_neg(self, t=uint512_t):
+        self.test_8b_neg(t)
 
 
 if __name__ == '__main__':

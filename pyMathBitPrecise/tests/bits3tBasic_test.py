@@ -57,6 +57,17 @@ class Bits3tBasicTC(Bits3tBaseTC):
 
     def test_u8b_proper_val(self):
         self.test_8b_proper_val(uint8_t)
+        t = uint8_t
+        with self.assertRaises(ValueError):
+            t.from_py("0b0000000e")
+
+        v = t.from_py("0b0000000x")
+        self.assertEqual(v.val, 0)
+        self.assertEqual(v.vld_mask, mask(7) << 1)
+
+        v = t.from_py("0bxx000000")
+        self.assertEqual(v.val, 0)
+        self.assertEqual(v.vld_mask, mask(6))
 
     def test_512b_cast(self):
         self.test_8b_cast(int512_t)

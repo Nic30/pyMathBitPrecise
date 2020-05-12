@@ -70,7 +70,7 @@ class Enum3tMeta(type):
 
 class Enum3t(metaclass=Enum3tMeta):
     """
-    :note: use as normal Python enum.Enum,
+    :note: use as Python enum.Enum,
         the value is always ignored and name is used as a value
     """
     def __eq__(self, other):
@@ -95,16 +95,3 @@ def define_Enum3t(name: str, values: List[str]):
     for v in values:
         cls_dict[v] = None
     return type(name, (Enum3t,), cls_dict)
-
-
-if __name__ == "__main__":
-
-    class MyEnum(Enum3t):
-        A = None
-        C = None
-        B = None
-
-    MyEnum2 = define_Enum3t("MyEnum2", ["x", "y", "z"])
-
-    print(MyEnum.A)
-    print(MyEnum2.z)

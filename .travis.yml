@@ -1,11 +1,11 @@
-dist: trusty
+dist: focal
 language: python
 git:
   depth: 1
 cache:
   apt: true
 python:
-- '3.6'
+- '3.8'
 install:
 - pip install pytest coveralls
 - python setup.py install
