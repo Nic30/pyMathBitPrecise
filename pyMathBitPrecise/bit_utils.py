@@ -195,7 +195,7 @@ def extend_to_size(collection, items, pad=0):
     return collection
 
 
-def bit_list_reversed_endianity(bitList):
+def bit_list_reversed_endianity(bitList, extend=True):
     w = len(bitList)
     i = w
 
@@ -204,19 +204,28 @@ def bit_list_reversed_endianity(bitList):
         # take last 8 bytes or rest
         lower = max(i - 8, 0)
         b = bitList[lower:i]
-        extend_to_size(b, 8)
+        if extend:
+            extend_to_size(b, 8)
         items.extend(b)
         i -= 8
 
     return items
 
 
-def bit_list_reversed_bits_in_bytes(bitList):
+def bit_list_reversed_bits_in_bytes(bitList, extend=None):
     "Byte reflection  (0x0f -> 0xf0)"
-    assert len(bitList) % 8 == 0
+    w = len(bitList)
+    if extend is None:
+        assert w % 8 == 0
     tmp = []
-    for db in grouper(8, bitList):
+    for db in grouper(8, bitList, padvalue=0):
         tmp.extend(reversed(db))
+
+    if not extend and len(tmp) != w:
+        rem = w % 8
+        # rm zeros from [0, 0, 0, 0, 0, d[2], d[1], d[0]] like
+        tmp = tmp[:w - rem] + tmp[-rem:]
+
     return tmp
 
 
