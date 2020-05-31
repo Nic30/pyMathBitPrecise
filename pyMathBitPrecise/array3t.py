@@ -89,7 +89,8 @@ class Array3val():
                 pass
             if index > self._dtype.size:
                 raise IndexError(index)
-        return self._dtype.element_t.from_py(None)
+        v = self.val[index] = self._dtype.element_t.from_py(None)
+        return v
 
     def __setitem__(self, index, val):
         try:
