@@ -62,7 +62,7 @@ class Enum3tMeta(type):
 
         enum_class = super().__new__(metacls, cls, bases, classdict)
         enum_class._all_values = all_values
-        enum_class.__instance__ = t_inst = enum_class()
+        t_inst = enum_class()
         for v in all_values:
             v._dtype = t_inst
         return enum_class
@@ -73,6 +73,15 @@ class Enum3t(metaclass=Enum3tMeta):
     :note: use as Python enum.Enum,
         the value is always ignored and name is used as a value
     """
+    def __new__(cls):
+        obj = cls.__dict__.get("__instance__", None)
+        if obj is not None:
+            # only own property
+            return obj
+        obj = super().__new__(cls)
+        cls.__instance__ = obj
+        return obj
+
     def __eq__(self, other):
         return self.__class__ == other.__class__
 
