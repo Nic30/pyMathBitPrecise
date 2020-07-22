@@ -11,13 +11,16 @@ class Enum3val():
         self.val = val
         self.vld_mask = vld_mask
 
+    def __copy__(self):
+        return self.__class__(self._dtype, self.val, self.vld_mask)
+
     def _eq(self, other):
         t = other._dtype
         if self._dtype is not t:
             raise TypeError(other)
         val = self.val == other.val
         vld_mask = self.vld_mask & other.vld_mask
-        return Bits3val._BOOL.from_py(int(val), int(vld_mask))
+        return Bits3val._BOOL._from_py(int(val), int(vld_mask))
 
     def __ne__(self, other):
         t = other._dtype
@@ -25,7 +28,7 @@ class Enum3val():
             raise TypeError()
         val = self.val != other.val
         vld_mask = self.vld_mask & other.vld_mask
-        return Bits3val._BOOL.from_py(int(val), int(vld_mask))
+        return Bits3val._BOOL._from_py(int(val), int(vld_mask))
 
     def _is(self, other):
         return isinstance(other, Enum3val)\
@@ -84,6 +87,12 @@ class Enum3t(metaclass=Enum3tMeta):
 
     def __eq__(self, other):
         return self.__class__ == other.__class__
+
+    def _from_py(self, val, vld_mask):
+        """
+        from_py without normalization
+        """
+        return Enum3val(self, val, vld_mask)
 
     def from_py(self, val: None,
                 vld_mask: Optional[int]=None) -> Enum3val:

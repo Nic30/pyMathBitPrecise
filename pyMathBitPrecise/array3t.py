@@ -1,6 +1,7 @@
 from typing import Optional, Union, Dict, List
 
 from pyMathBitPrecise.bit_utils import ValidityError
+from copy import copy
 
 
 class Array3t():
@@ -21,6 +22,12 @@ class Array3t():
 
     def bit_length(self) -> int:
         return self.size * self.element_t.bit_length()
+    
+    def _from_py(self, val, vld_mask):
+        """
+        from_py without normalization
+        """
+        return Array3val(self, val, vld_mask)
 
     def from_py(self, val: Union[List["value"], Dict[int, "value"], None],
                 vld_mask: Optional[int]=None) -> "Array3val":
@@ -71,6 +78,9 @@ class Array3val():
         self._dtype = t
         self.val = val
         self.vld_mask = vld_mask
+
+    def __copy__(self):
+        return self.__class__(self._dtype, copy(self.val), self.vld_mask)
 
     def __len__(self):
         ":return: size of this array"

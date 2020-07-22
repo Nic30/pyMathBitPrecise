@@ -90,8 +90,10 @@ class Bits3t():
             assert vld_mask is None or vld_mask == 0
         else:
             all_mask = self.all_mask()
-            w = self.bit_length()
-            if isinstance(val, bytes):
+            w = self._bit_length
+            if isinstance(val, int):
+                pass
+            elif isinstance(val, bytes):
                 val = int.from_bytes(
                     val, byteorder="little", signed=bool(self.signed))
             elif isinstance(val, str):
@@ -162,6 +164,12 @@ class Bits3t():
                         val, w, val & all_mask)
                 val = val & vld
         return val, vld
+
+    def _from_py(self, val, vld_mask):
+        """
+        from_py without normalization
+        """
+        return Bits3val(self, val, vld_mask)
 
     def from_py(self, val: Union[int, bytes, str, Enum],
                 vld_mask: Optional[int]=None) -> "Bits3val":
@@ -352,7 +360,7 @@ class Bits3val():
             raise TypeError(key)
 
         new_t = self._dtype.__class__(size, signed=self._dtype.signed)
-        return new_t.from_py(val, vld)
+        return new_t._from_py(val, vld)
 
     def __setitem__(self, index: Union[slice, int, "Bits3val"],
                     value: Union["Bits3val", int]):
@@ -596,7 +604,7 @@ class Bits3val():
             else:
                 v = 0
                 m = 0
-        return self._dtype.from_py(v, m)
+        return self._dtype._from_py(v, m)
 
     def __mul__(self, other: Union[int, "Bits3val"]) -> "Bits3val":
         "Operator *."
@@ -616,11 +624,11 @@ class Bits3val():
 
         if self._is_full_valid() and (other_is_int
                                       or other._is_full_valid()):
-            vld_mask = None
+            vld_mask = resT._all_mask
         else:
             vld_mask = 0
 
-        return resT.from_py(v, vld_mask=vld_mask)
+        return resT._from_py(v, vld_mask)
 
     def _ternary(self, a, b):
         """
@@ -651,16 +659,17 @@ def bitsBitOp__val(self: Bits3val, other: Union[Bits3val, int],
     """
     Apply bitwise operator
     """
+    res_t = self._dtype
     if isinstance(other, int):
-        other = self._dtype.from_py(other)
-    w = self._dtype.bit_length()
-    assert w == other._dtype.bit_length(), (self._dtype, other._dtype)
+        other = res_t.from_py(other)
+    w = res_t.bit_length()
+    assert w == other._dtype.bit_length(), (res_t, other._dtype)
     vld = getVldFn(self, other)
     res = evalFn(self.val, other.val) & vld
-    if self._dtype.signed:
+    if res_t.signed:
         res = to_signed(res, w)
 
-    return self._dtype.from_py(res, vld)
+    return res_t._from_py(res, vld)
 
 
 def bitsCmp__val(self: Bits3val, other: Union[Bits3val, int],
@@ -670,7 +679,7 @@ def bitsCmp__val(self: Bits3val, other: Union[Bits3val, int],
     """
     t = self._dtype
     if isinstance(other, int):
-        other = self._dtype.from_py(other)
+        other = t.from_py(other)
         ot = other._dtype
         w = t.bit_length()
     else:
@@ -680,10 +689,10 @@ def bitsCmp__val(self: Bits3val, other: Union[Bits3val, int],
             raise TypeError(t, ot)
 
     vld = self.vld_mask & other.vld_mask
-    _vld = vld == mask(w)
-    res = evalFn(self.val, other.val) and _vld
+    _vld = int(vld == t._all_mask)
+    res = evalFn(self.val, other.val) & _vld
 
-    return self._BOOL.from_py(res, int(_vld))
+    return self._BOOL._from_py(int(res), int(_vld))
 
 
 def bitsArithOp__val(self: Bits3val, other: Union[Bits3val, int],
