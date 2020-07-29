@@ -5,7 +5,7 @@ from pyMathBitPrecise.enum3t import Enum3t, define_Enum3t, Enum3val
 
 class Enum3tTC(unittest.TestCase):
 
-    def test_instanciation_and_eq_neq(self):
+    def test_instantiation_and_eq_neq(self):
         class Enum0(Enum3t):
             (A, B, C) = range(3)
         Enum1 = define_Enum3t("Enum1", ["A", "B", "C"])
@@ -26,7 +26,7 @@ class Enum3tTC(unittest.TestCase):
 
 if __name__ == '__main__':
     suite = unittest.TestSuite()
-    # suite.addTest(Enum3tTC('test_instanciation_and_eq_neq'))
+    # suite.addTest(Enum3tTC('test_instantiation_and_eq_neq'))
     suite.addTest(unittest.makeSuite(Enum3tTC))
     runner = unittest.TextTestRunner(verbosity=3)
     runner.run(suite)
