@@ -2,7 +2,7 @@ import unittest
 from pyMathBitPrecise.bit_utils import toggle_bit, align, iter_bits, mask_bytes,\
     reverse_bits, bit_list_to_int, int_list_to_int, extend_to_size,\
     bit_list_reversed_endianity, int_to_int_list,\
-    bit_list_reversed_bits_in_bytes
+    bit_list_reversed_bits_in_bytes, apply_set_and_clear
 
 
 class BitUtilsTC(unittest.TestCase):
@@ -46,6 +46,13 @@ class BitUtilsTC(unittest.TestCase):
         rev_bits = bit_list_reversed_bits_in_bytes(bits)
         v = int_list_to_int(rev_bits, 1)
         self.assertEqual(v, 0x8040c0, "0x%x 0x%x" % (v, 0x8040c0))
+
+    def test_apply_set_and_clear(self):
+        self.assertEqual(apply_set_and_clear(0, 0b1010, 0), 0b1010)
+        self.assertEqual(apply_set_and_clear(1, 0b1010, 0), 0b1011)
+        self.assertEqual(apply_set_and_clear(1, 0b1010, 1), 0b1010)
+        self.assertEqual(apply_set_and_clear(1, 0, 0b1010), 1)
+        self.assertEqual(apply_set_and_clear(1, 0b1010, 0b1010), 0b1011)
 
 
 if __name__ == '__main__':

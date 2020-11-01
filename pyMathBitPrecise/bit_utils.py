@@ -87,7 +87,7 @@ def apply_set_and_clear(val: int, set_flag: int, clear_flag: int):
     :param val: an input value of the flag(s)
     :param set_flag: a mask of bits to set to 1
     :param clear_flag: a mask of bits to set to 0
-    :note: clear has higher priority
+    :note: set has higher priority
     
     :return: new value of the flag
     """
