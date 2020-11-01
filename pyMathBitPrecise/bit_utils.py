@@ -82,6 +82,19 @@ def bit_set_to(val: int, bitNo: int, bitVal: int) -> int:
         raise ValueError(("Invalid value of bit to set", bitVal))
 
 
+def apply_set_and_clear(val: int, set_flag: int, clear_flag: int):
+    """
+    :param val: an input value of the flag(s)
+    :param set_flag: a mask of bits to set to 1
+    :param clear_flag: a mask of bits to set to 0
+    :note: clear has higher priority
+    
+    :return: new value of the flag
+    """
+    return (val & ~clear_flag) | set_flag
+
+
+
 def align(val: int, lowerBitCntToAlign: int) -> int:
     """
     Cut off lower bits to align a int value.
