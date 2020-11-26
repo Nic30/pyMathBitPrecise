@@ -105,7 +105,7 @@ def align(val: int, lowerBitCntToAlign: int) -> int:
 
 def iter_bits(val: int, length: int) -> Generator[int, int, None]:
     """
-    Iterate bits in int.
+    Iterate bits in int. LSB first.
     """
     for _ in range(length):
         yield val & 1
