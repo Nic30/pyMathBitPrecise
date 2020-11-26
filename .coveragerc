@@ -2,7 +2,7 @@
 
 
 source =
-    hwtLib
+    pyMathBitPrecise
 
 [report]
 exclude_lines =
