@@ -22,7 +22,7 @@ class Array3t():
 
     def bit_length(self) -> int:
         return self.size * self.element_t.bit_length()
-    
+
     def _from_py(self, val, vld_mask):
         """
         from_py without normalization
@@ -122,4 +122,4 @@ class Array3val():
         self.val[index] = val
 
     def __repr__(self):
-        return "<%s %r>" % (self.__class__.__name__, self.val)
+        return f"<{self.__class__.__name__:s} {self.val}>"

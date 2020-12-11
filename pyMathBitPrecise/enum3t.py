@@ -42,9 +42,9 @@ class Enum3val():
     def __repr__(self):
         cls_name = self._dtype.__class__.__name__
         if self.vld_mask:
-            return "<%s.%s>" % (cls_name, self.val)
+            return f"<{cls_name:s}.{self.val:s}>"
         else:
-            return "<%s invalid>" % cls_name
+            return f"<{cls_name:s} invalid>"
 
 
 class Enum3tMeta(type):

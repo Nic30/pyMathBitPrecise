@@ -207,9 +207,9 @@ class Bits3t():
         """
         constr = []
         if self.name is not None:
-            constr.append('"%s"' % self.name)
+            constr.append(f'"{self.name:s}"')
         c = self.bit_length()
-        constr.append("%dbits" % c)
+        constr.append(f"{c:d}bits")
         if self.force_vector:
             constr.append("force_vector")
         if self.signed:

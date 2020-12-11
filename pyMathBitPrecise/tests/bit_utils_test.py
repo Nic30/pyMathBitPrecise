@@ -45,7 +45,7 @@ class BitUtilsTC(unittest.TestCase):
         bits = int_to_int_list(0x010203, 1, 3 * 8)
         rev_bits = bit_list_reversed_bits_in_bytes(bits)
         v = int_list_to_int(rev_bits, 1)
-        self.assertEqual(v, 0x8040c0, "0x%x 0x%x" % (v, 0x8040c0))
+        self.assertEqual(v, 0x8040c0, f"0x{v:x} 0x8040c0")
 
     def test_apply_set_and_clear(self):
         self.assertEqual(apply_set_and_clear(0, 0b1010, 0), 0b1010)
