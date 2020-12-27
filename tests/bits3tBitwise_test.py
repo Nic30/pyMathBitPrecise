@@ -5,7 +5,7 @@ import unittest
 
 from pyMathBitPrecise.bit_utils import to_signed, mask
 from pyMathBitPrecise.bits3t import Bits3t
-from pyMathBitPrecise.tests.bits3tBaseTC import Bits3tBaseTC, int8_t, int512_t, \
+from tests.bits3tBaseTC import Bits3tBaseTC, int8_t, int512_t, \
     uint512_t, uint8_t
 
 

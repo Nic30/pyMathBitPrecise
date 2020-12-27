@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: UTF-8 -*-
 
-from pyMathBitPrecise.tests.bits3tBaseTC import Bits3tBaseTC, int8_t, int512_t, \
+from tests.bits3tBaseTC import Bits3tBaseTC, int8_t, int512_t, \
     uint512_t, uint8_t
 import unittest
 from pyMathBitPrecise.bits3t import Bits3t

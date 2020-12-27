@@ -31,5 +31,5 @@ setup(name="pyMathBitPrecise",
         "Topic :: System :: Emulators",
         "Topic :: Utilities"],
       license="MIT",
-      packages=find_packages(),
+      packages=find_packages(exclude=["tests", ]),
 )

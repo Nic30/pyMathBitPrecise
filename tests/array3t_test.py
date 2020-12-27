@@ -1,7 +1,7 @@
 import unittest
 
 from pyMathBitPrecise.bit_utils import ValidityError
-from pyMathBitPrecise.tests.bits3tBaseTC import uint8_t
+from tests.bits3tBaseTC import uint8_t
 
 
 class Array3tTC(unittest.TestCase):

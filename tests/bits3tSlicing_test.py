@@ -2,8 +2,10 @@
 # -*- coding: UTF-8 -*-
 
 import unittest
-from pyMathBitPrecise.tests.bits3tBaseTC import uint8_t
+
 from pyMathBitPrecise.bits3t import Bits3t
+from tests.bits3tBaseTC import uint8_t
+
 
 BIT = Bits3t(1, name="bit")
 
