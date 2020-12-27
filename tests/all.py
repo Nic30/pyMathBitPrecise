@@ -12,21 +12,39 @@ from tests.bits3tCmp_test import Bits3tCmpTC
 from tests.bits3tSlicing_test import BitsSlicingTC
 from tests.enum3t_test import Enum3tTC
 
+suite = unittest.TestSuite()
+tcs = [
+    BitUtilsTC,
+    Bits3tBasicTC,
+    Bits3tBitwiseTC,
+    Bits3tArithmeticTC,
+    Bits3tCmpTC,
+    BitsSlicingTC,
+    Array3tTC,
+    Enum3tTC,
+]
+for tc in tcs:
+    suite.addTest(unittest.makeSuite(tc))
 
-if __name__ == "__main__":
-    suite = unittest.TestSuite()
-    tcs = [
-        BitUtilsTC,
-        Bits3tBasicTC,
-        Bits3tBitwiseTC,
-        Bits3tArithmeticTC,
-        Bits3tCmpTC,
-        BitsSlicingTC,
-        Array3tTC,
-        Enum3tTC,
-    ]
-    for tc in tcs:
-        suite.addTest(unittest.makeSuite(tc))
+if __name__ == '__main__':
+    import sys
+    if "--with-xunit" in sys.argv:
+        # junit xml output for CI
+        import xmlrunner
+        runner = xmlrunner.XMLTestRunner(output='test-reports')
+    else:
+        runner = unittest.TextTestRunner(verbosity=2)
 
-    runner = unittest.TextTestRunner(verbosity=3)
-    runner.run(suite)
+    try:
+        from concurrencytest import ConcurrentTestSuite, fork_for_tests
+        useParallerlTest = True
+    except ImportError:
+        # concurrencytest is not installed, use regular test runner
+        useParallerlTest = False
+
+    if useParallerlTest:
+        # Run same tests across 4 processes
+        concurrent_suite = ConcurrentTestSuite(suite, fork_for_tests())
+        runner.run(concurrent_suite)
+    else:
+        sys.exit(not runner.run(suite).wasSuccessful())
