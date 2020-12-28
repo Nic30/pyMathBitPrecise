@@ -1,5 +1,5 @@
 # pyMathBitPrecise
-[![Build Status](https://travis-ci.org/Nic30/pyMathBitPrecise.svg?branch=master)](https://travis-ci.org/Nic30/pyMathBitPrecise)
+[![CircleCI](https://circleci.com/gh/Nic30/pyMathBitPrecise.svg?style=svg)](https://circleci.com/gh/Nic30/pyMathBitPrecise)
 [![Coverage Status](https://coveralls.io/repos/github/Nic30/pyMathBitPrecise/badge.svg?branch=master)](https://coveralls.io/github/Nic30/pyMathBitPrecise?branch=master)
 [![PyPI version](https://badge.fury.io/py/pyMathBitPrecise.svg)](http://badge.fury.io/py/pyMathBitPrecise) 
 [![Documentation Status](https://readthedocs.org/projects/pyMathBitPrecise/badge/?version=latest)](http://pyMathBitPrecise.readthedocs.io/en/latest/?badge=latest) 
