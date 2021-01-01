@@ -8,8 +8,6 @@ jobs:
   install-test-deploy:
     executor: python/default
     resource_class: small
-    context:
-      - pypi
     steps:
       - checkout
       # - python/load-cache
@@ -22,6 +20,8 @@ workflows:
   main:
     jobs:
       - install-test-deploy:
+          context:
+            - pypi
           filters:
             tags:
               only: /.*/
