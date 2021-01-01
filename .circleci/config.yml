@@ -19,4 +19,7 @@ jobs:
 workflows:
   main:
     jobs:
-      - install-test-deploy
+      - install-test-deploy:
+          filters:
+            tags:
+              only: /.*/
