@@ -8,6 +8,8 @@ jobs:
   install-test-deploy:
     executor: python/default
     resource_class: small
+    context:
+      - pypi
     steps:
       - checkout
       # - python/load-cache
