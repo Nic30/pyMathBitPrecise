@@ -88,7 +88,7 @@ def apply_set_and_clear(val: int, set_flag: int, clear_flag: int):
     :param set_flag: a mask of bits to set to 1
     :param clear_flag: a mask of bits to set to 0
     :note: set has higher priority
-    
+
     :return: new value of the flag
     """
     return (val & ~clear_flag) | set_flag
@@ -101,6 +101,13 @@ def align(val: int, lowerBitCntToAlign: int) -> int:
     """
     val = val >> lowerBitCntToAlign
     return val << lowerBitCntToAlign
+
+
+def align_with_known_width(val, width: int, lowerBitCntToAlign: int):
+    """
+    Does same as :func:`~.align` just with the known width of val
+    """
+    return val & (mask(width - lowerBitCntToAlign) << lowerBitCntToAlign)
 
 
 def iter_bits(val: int, length: int) -> Generator[int, int, None]:
