@@ -10,6 +10,18 @@ from pyMathBitPrecise.bit_utils import mask
 
 class Bits3tArithmeticTC(Bits3tBaseTC):
 
+    def test_4b_sign_cast(self):
+        t = Bits3t(4)
+        v = t.from_py(0xf)
+        self.assertEqual(int(v), 0xf)
+        self.assertEqual(int(v.cast_sign(True)), -1)
+        self.assertEqual(int(v.cast_sign(True).cast_sign(False)), 0xf)
+
+        v = t.from_py(0xe)
+        self.assertEqual(int(v), 0xe)
+        self.assertEqual(int(v.cast_sign(True)), -2)
+        self.assertEqual(int(v.cast_sign(True).cast_sign(False)), 0xe)
+
     def test_8b_add(self, t=int8_t):
         low, up, intLow, intUp = self.getMinMaxVal(t)
 
@@ -92,8 +104,8 @@ class Bits3tArithmeticTC(Bits3tBaseTC):
             ae(int(-t.from_py(2)), -2)
             ae(int(-t.from_py(-2)), 2)
 
-            ae(int(-low),  int(low))
-            ae(int(-up),  -mask(w - 1))
+            ae(int(-low), int(low))
+            ae(int(-up), -mask(w - 1))
         else:
             with self.assertRaises(TypeError):
                 -t.from_py(0)

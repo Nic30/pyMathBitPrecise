@@ -285,7 +285,6 @@ class Bits3val():
             return self
         selfSign = t.signed
         v = self.__copy__()
-        w = t.bit_length()
         m = t._all_mask
         _v = v.val
 
@@ -293,9 +292,9 @@ class Bits3val():
             if _v < 0:
                 v.val = m + _v + 1
         elif not selfSign and signed:
-            msbMask = 1 << (w - 1)
-            if _v >= msbMask:
-                v.val = -_v + msbMask + (m >> 1) - 1
+            w = t.bit_length()
+            v.val = to_signed(_v, w)
+
         v._dtype = v._dtype.__copy__()
         v._dtype = self._dtype.__copy__()
         v._dtype.signed = signed
@@ -326,7 +325,7 @@ class Bits3val():
         w = self._dtype.bit_length()
         other_w = other._dtype.bit_length()
         resWidth = w + other_w
-        resT = self._dtype.__class__(resWidth, signed=self._dtype.signed)
+        resT = self._dtype.__class__(resWidth, signed=False)
 
         v = self.__copy__()
         v.val = (v.val << other_w) | other.val
@@ -359,7 +358,7 @@ class Bits3val():
         else:
             raise TypeError(key)
 
-        new_t = self._dtype.__class__(size, signed=self._dtype.signed)
+        new_t = self._dtype.__class__(size, signed=False)
         return new_t._from_py(val, vld)
 
     def __setitem__(self, index: Union[slice, int, "Bits3val"],
