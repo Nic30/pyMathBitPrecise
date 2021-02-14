@@ -11,6 +11,7 @@ from tests.bits3tBitwise_test import Bits3tBitwiseTC
 from tests.bits3tCmp_test import Bits3tCmpTC
 from tests.bits3tSlicing_test import BitsSlicingTC
 from tests.enum3t_test import Enum3tTC
+from tests.floatt_test import FloattTC
 
 suite = unittest.TestSuite()
 tcs = [
@@ -22,6 +23,7 @@ tcs = [
     BitsSlicingTC,
     Array3tTC,
     Enum3tTC,
+    FloattTC,
 ]
 for tc in tcs:
     suite.addTest(unittest.makeSuite(tc))
