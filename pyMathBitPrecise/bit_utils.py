@@ -287,6 +287,6 @@ def int_to_int_list(v: int, item_width: int, number_of_items: int):
         res.append(v & item_mask)
         v >>= item_width
 
-    assert v == 0, "there is nothing left"
+    assert v == 0, ("there should be nothing left, the value is larger", v)
     return res
 
