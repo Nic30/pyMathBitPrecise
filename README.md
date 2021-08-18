@@ -53,3 +53,4 @@ assert e._dtype == uint8_t
 
   * [hwtypes](https://github.com/leonardt/hwtypes) - Python implementations of fixed size hardware types
   * [Bitwise](https://github.com/jamesjiang52/Bitwise)
+  * [bsim](https://github.com/dillonhuff/bsim) - C++, arbitrary length bit vectors
