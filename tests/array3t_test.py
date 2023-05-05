@@ -62,8 +62,8 @@ class Array3tTC(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    suite = unittest.TestSuite()
-    # suite.addTest(Array3tTC('test_1d_from_dict'))
-    suite.addTest(unittest.makeSuite(Array3tTC))
+    testLoader = unittest.TestLoader()
+    # suite = unittest.TestSuite([Array3tTC("test_1d_from_dict")])
+    suite = testLoader.loadTestsFromTestCase(Array3tTC)
     runner = unittest.TextTestRunner(verbosity=3)
     runner.run(suite)

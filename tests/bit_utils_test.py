@@ -56,8 +56,8 @@ class BitUtilsTC(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    suite = unittest.TestSuite()
-    # suite.addTest(BitUtilsTC(''))
-    suite.addTest(unittest.makeSuite(BitUtilsTC))
+    testLoader = unittest.TestLoader()
+    # suite = unittest.TestSuite([BitUtilsTC("test_apply_set_and_clear")])
+    suite = testLoader.loadTestsFromTestCase(BitUtilsTC)
     runner = unittest.TextTestRunner(verbosity=3)
     runner.run(suite)

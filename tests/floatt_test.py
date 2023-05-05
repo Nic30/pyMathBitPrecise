@@ -52,8 +52,8 @@ class FloattTC(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    suite = unittest.TestSuite()
-    # suite.addTest(FloattTC('test_instantiation_and_eq_neq'))
-    suite.addTest(unittest.makeSuite(FloattTC))
+    testLoader = unittest.TestLoader()
+    # suite = unittest.TestSuite([FloattTC("test_instantiation_and_eq_neq")])
+    suite = testLoader.loadTestsFromTestCase(FloattTC)
     runner = unittest.TextTestRunner(verbosity=3)
     runner.run(suite)

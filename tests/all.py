@@ -13,8 +13,7 @@ from tests.bits3tSlicing_test import BitsSlicingTC
 from tests.enum3t_test import Enum3tTC
 from tests.floatt_test import FloattTC
 
-suite = unittest.TestSuite()
-tcs = [
+_ALL_TCs = [
     BitUtilsTC,
     Bits3tBasicTC,
     Bits3tBitwiseTC,
@@ -25,8 +24,9 @@ tcs = [
     Enum3tTC,
     FloattTC,
 ]
-for tc in tcs:
-    suite.addTest(unittest.makeSuite(tc))
+testLoader = unittest.TestLoader()
+loadedTcs = [testLoader.loadTestsFromTestCase(tc) for tc in _ALL_TCs]
+suite = unittest.TestSuite(loadedTcs)
 
 if __name__ == '__main__':
     import sys

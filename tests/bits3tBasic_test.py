@@ -80,8 +80,8 @@ class Bits3tBasicTC(Bits3tBaseTC):
 
 
 if __name__ == '__main__':
-    suite = unittest.TestSuite()
-    # suite.addTest(Bits3tBasicTC('test_8b_proper_val'))
-    suite.addTest(unittest.makeSuite(Bits3tBasicTC))
+    testLoader = unittest.TestLoader()
+    # suite = unittest.TestSuite([Bits3tBasicTC("test_8b_proper_val")])
+    suite = testLoader.loadTestsFromTestCase(Bits3tBasicTC)
     runner = unittest.TextTestRunner(verbosity=3)
     runner.run(suite)

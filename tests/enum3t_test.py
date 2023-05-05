@@ -25,8 +25,8 @@ class Enum3tTC(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    suite = unittest.TestSuite()
-    # suite.addTest(Enum3tTC('test_instantiation_and_eq_neq'))
-    suite.addTest(unittest.makeSuite(Enum3tTC))
+    testLoader = unittest.TestLoader()
+    # suite = unittest.TestSuite([Enum3tTC("test_instantiation_and_eq_neq")])
+    suite = testLoader.loadTestsFromTestCase(Enum3tTC)
     runner = unittest.TextTestRunner(verbosity=3)
     runner.run(suite)

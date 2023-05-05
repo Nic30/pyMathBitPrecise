@@ -163,8 +163,8 @@ class Bits3tArithmeticTC(Bits3tBaseTC):
 
 
 if __name__ == '__main__':
-    suite = unittest.TestSuite()
-    # suite.addTest(Bits3tArithmeticTC('test_512b_rshift'))
-    suite.addTest(unittest.makeSuite(Bits3tArithmeticTC))
+    testLoader = unittest.TestLoader()
+    # suite = unittest.TestSuite([Bits3tArithmeticTC("test_512b_rshift")])
+    suite = testLoader.loadTestsFromTestCase(Bits3tArithmeticTC)
     runner = unittest.TextTestRunner(verbosity=3)
     runner.run(suite)
