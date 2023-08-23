@@ -326,9 +326,13 @@ class Bits3val():
         other_w = other._dtype.bit_length()
         resWidth = w + other_w
         resT = self._dtype.__class__(resWidth, signed=False)
-
+        other_val = other.val
+        if other_val < 0:
+            other_val = to_unsigned(other_val, other_w)
         v = self.__copy__()
-        v.val = (v.val << other_w) | other.val
+        if v.val < 0:
+            v.val = to_unsigned(v.val, w)
+        v.val = (v.val << other_w) | other_val
         v.vld_mask = (v.vld_mask << other_w) | other.vld_mask
         v._dtype = resT
         return v
@@ -421,7 +425,7 @@ class Bits3val():
     def __neg__(self):
         "Operator -x."
         if not self._dtype.signed:
-            raise TypeError("unsigned")
+            raise TypeError("- operator is defined only for signed")
 
         v = self.__copy__()
         _v = -v.val
