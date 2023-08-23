@@ -9,7 +9,7 @@
 This library contains data types of fixed bit size and utils for bit manipulations.
 It also contains types with support for tri state values etc. (Python equivalents of VHDL `std_logic_vector`, Verilog `wire`/`reg`.)
 
-This may be usefull for tools which are simulating hardware or software which needs numbers of exact size.
+This may be useful for tools which are simulating hardware or software which needs numbers of exact size.
 
 ## Example
 
