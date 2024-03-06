@@ -160,8 +160,8 @@ class Bits3t():
 
                 if val & all_mask != val:
                     raise ValueError(
-                        "Not enought bits to represent value",
-                        val, w, val & all_mask)
+                        "Not enough bits to represent value",
+                        val, "on", w, "bit" if w == 1 else "bits", val & all_mask)
                 val = val & vld
         return val, vld
 
@@ -317,7 +317,7 @@ class Bits3val():
 
     def _concat(self, other: "Bits3val") -> "Bits3val":
         """
-        Concatenate two bit vectors together
+        Concatenate two bit vectors together (self will be at MSB side)
         Verilog: {self, other}, VHDL: self & other
         """
         if not isinstance(other, Bits3val):
