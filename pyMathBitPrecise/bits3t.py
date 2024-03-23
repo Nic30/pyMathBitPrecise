@@ -649,12 +649,13 @@ class Bits3val():
         return res
 
     def __repr__(self):
-        if self.vld_mask != self._dtype.all_mask():
+        t = self._dtype
+        if self.vld_mask != t.all_mask():
             m = ", mask {0:x}".format(self.vld_mask)
         else:
             m = ""
-        return "<{0:s} {1:s}{2:s}>".format(
-            self.__class__.__name__, repr(self.val), m)
+        typeDescrChar = 'b' if t.signed is None else 'i' if t.signed else 'u'
+        return f"<{self.__class__.__name__:s} {typeDescrChar:s}{t.bit_length():d} {repr(self.val):s}{m:s}>"
 
 
 def bitsBitOp__val(self: Bits3val, other: Union[Bits3val, int],
@@ -689,7 +690,7 @@ def bitsCmp__val(self: Bits3val, other: Union[Bits3val, int],
         ot = other._dtype
         w = t.bit_length()
         if t.signed != ot.signed or w != ot.bit_length():
-            raise TypeError(t, ot)
+            raise TypeError("Value compare supports only same width and sign type", t, ot)
 
     vld = self.vld_mask & other.vld_mask
     _vld = int(vld == t._all_mask)
