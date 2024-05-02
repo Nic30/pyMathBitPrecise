@@ -94,7 +94,6 @@ def apply_set_and_clear(val: int, set_flag: int, clear_flag: int):
     return (val & ~clear_flag) | set_flag
 
 
-
 def align(val: int, lowerBitCntToAlign: int) -> int:
     """
     Cut off lower bits to align a int value.
@@ -110,13 +109,41 @@ def align_with_known_width(val, width: int, lowerBitCntToAlign: int):
     return val & (mask(width - lowerBitCntToAlign) << lowerBitCntToAlign)
 
 
-def iter_bits(val: int, length: int) -> Generator[int, int, None]:
+def iter_bits(val: int, length: int) -> Generator[int, None, None]:
     """
     Iterate bits in int. LSB first.
     """
     for _ in range(length):
         yield val & 1
         val >>= 1
+
+
+def iter_bits_sequences(val: int, length: int) -> Generator[Tuple[int, int], None, None]:
+    """
+    Iter tuples (bitVal, number of same bits), lsb first
+    """
+    assert length > 0, length
+    assert val >= 0
+    # start of new bit seqence
+    w = 1
+    valBit = val & 1
+    val >>= 1
+    foundBit = valBit
+    for _ in range(length-1):
+        # extract single bit from val
+        valBit = val & 1
+        val >>= 1
+        # check if it fits into current bit sequence
+        if valBit == foundBit:
+            w += 1
+        else:
+            # end of sequence of same bits
+            yield (foundBit, w)
+            foundBit = valBit
+            w = 1
+
+    if w != 0:
+        yield (foundBit, w)
 
 
 def to_signed(val: int, width: int) -> int:
