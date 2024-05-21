@@ -451,7 +451,7 @@ class Bits3val():
     def _eq(self, other: Union[int, "Bits3val"]) -> "Bits3val":
         """
         Operator self._eq(other) as self == other
-        == is not overriden in order to prevent tricky behavior if hashing partially valid values
+        == is not overridden in order to prevent tricky behavior if hashing partially valid values
         """
         return bitsCmp__val(self, other, eq)
 
