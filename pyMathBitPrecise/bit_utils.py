@@ -259,7 +259,7 @@ def bit_list_reversed_endianity(bitList, extend=True):
     return items
 
 
-def bit_list_reversed_bits_in_bytes(bitList, extend=None):
+def bit_list_reversed_bits_in_bytes(bitList: List[int], extend=None):
     "Byte reflection  (0x0f -> 0xf0)"
     w = len(bitList)
     if extend is None:
@@ -283,7 +283,7 @@ def byte_list_to_be_int(_bytes: List[int]):
     return int_list_to_int(_bytes, 8)
 
 
-def bit_list_to_int(bitList):
+def bit_list_to_int(bitList: List[int]):
     """
     In input list LSB first, in result little endian ([0, 1] -> 0b10)
     """
@@ -316,4 +316,29 @@ def int_to_int_list(v: int, item_width: int, number_of_items: int):
 
     assert v == 0, ("there should be nothing left, the value is larger", v)
     return res
+
+
+def reverse_byte_order(val: "Bits3val"):
+    """
+    Reverse byteorder (littleendian/bigendian) of signal or value
+    """
+    w = val._dtype.bit_length()
+    i = w
+    items = []
+
+    while i > 0:
+        # take last 8 bytes or rest
+        lower = max(i - 8, 0)
+        items.append(val[i:lower])
+        i -= 8
+    
+    # Concat(*items)
+    top = None
+    for s in items:
+        if top is None:
+            top = s
+        else:
+            top = top._concat(s)
+    return top
+
 
