@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 
 import unittest
-from tests.bits3tBaseTC import Bits3tBaseTC, int8_t, valToInt, \
+from tests.bits3tBaseTC import Bits3tBaseTC, int8_t, Bits3valToInt, \
     int512_t, uint512_t, uint8_t
 from pyMathBitPrecise.bits3t import Bits3t
 from pyMathBitPrecise.bit_utils import mask
@@ -89,7 +89,7 @@ class Bits3tArithmeticTC(Bits3tBaseTC):
             ae(up * t.from_py(2), -2)
 
         m = up * t.from_py(None)
-        ae(valToInt(m), None)
+        ae(Bits3valToInt(m), None)
 
     def test_8b_neg(self, t=int8_t):
         w = t.bit_length()

@@ -10,7 +10,7 @@ int512_t = Bits3t(512, signed=True)
 uint512_t = Bits3t(512, signed=False)
 
 
-def valToInt(val):
+def Bits3valToInt(val):
     if val._is_full_valid():
         return int(val)
     else:
