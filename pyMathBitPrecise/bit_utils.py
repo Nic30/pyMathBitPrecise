@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: UTF-8 -*-
+from typing import List, Tuple, Generator, Union, Optional
+
 from pyMathBitPrecise.utils import grouper
-from typing import List, Tuple, Generator
 
 
 def mask(bits: int) -> int:
@@ -341,4 +342,26 @@ def reverse_byte_order(val: "Bits3val"):
             top = top._concat(s)
     return top
 
+def is_power_of_2(v: Union["Bits3val", int]):
+    return ~(v & (v - 1))
 
+def next_power_of_2(v: Union["Bits3val", int], width:Optional[int]=None):
+    # depend on the fact that v < 2^width
+    v -= 1
+    if isinstance(v, int):
+        v = to_unsigned(v, width)
+    else:
+        width = v._dtype.bit_length()
+
+    i = 1
+    while True:
+        v |= (v >> i) # 1, 2, 4, 8, 16 for 32b
+        i <<= 1
+        if i > width // 2:
+            break
+    
+    v = v + 1
+
+    if isinstance(v, int):
+        v &= mask(width)
+    return v
