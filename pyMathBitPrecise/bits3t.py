@@ -23,24 +23,26 @@ class Bits3t():
     :ivar ~.bit_length: number representation of value of this type
     :ivar ~.signed: flag which tells if this type is signed or not
     :ivar ~._all_mask: cached value of mask for all bits
-    :ivar ~.name: name for anotation
+    :ivar ~.name: name for annotation
     :ivar ~.force_vector: use always hdl vector type
             (for example std_logic_vector(0 downto 0)
              instead of std_logic in VHDL,
              wire[1] instead of wire)
     :ivar ~.strict_sign: same thing as strict_width just for signed/unsigned
     :ivar ~.strict_width: if True the arithmetic, bitwise
-        and comparision operators can be performed only on value
+        and comparison operators can be performed only on value
         of this exact same width
     :note: operation is not strict if at least one operand
         does not have strict flag set,
         the result width/sign is taken from other operand
-        (or first if bouth are not strict)
+        (or first if both are not strict)
     """
 
-    def __init__(self, bit_length: int, signed=False, name: Optional[str]=None,
+    def __init__(self, bit_length: int, signed:Optional[bool]=False, name: Optional[str]=None,
                  force_vector=False,
                  strict_sign=True, strict_width=True):
+        if force_vector and bit_length != 1:
+            assert bit_length == 1, "force_vector=True is appliable only for 1b values"
         self._bit_length = bit_length
         self.signed = signed
         self._all_mask = mask(bit_length)
@@ -75,8 +77,7 @@ class Bits3t():
                 or (isinstance(other, Bits3t)
                     and self._bit_length == other._bit_length
                     and self.name == other.name
-                    and (self.force_vector == other.force_vector
-                         or self._bit_length > 1)
+                    and self.force_vector == other.force_vector
                     and self.strict_sign == other.strict_sign
                     and self.strict_width == other.strict_width
                     and self.signed == other.signed
@@ -209,19 +210,24 @@ class Bits3t():
         if self.name is not None:
             constr.append(f'"{self.name:s}"')
         c = self.bit_length()
-        constr.append(f"{c:d}bits")
+        
+        if self.signed:
+            sign = "i"
+        elif self.signed is False:
+            sign = "u"
+        else:
+            sign = "b"
+            
+        constr.append(f"{sign:s}{c:d}")
         if self.force_vector:
             constr.append("force_vector")
-        if self.signed:
-            constr.append("signed")
-        elif self.signed is False:
-            constr.append("unsigned")
+        
         if not self.strict_sign:
             constr.append("strict_sign=False")
         if not self.strict_width:
             constr.append("strict_width=False")
 
-        return "<%s, %s>" % (self.__class__.__name__,
+        return "<%s %s>" % (self.__class__.__name__,
                              ", ".join(constr))
 
 
@@ -235,7 +241,7 @@ class Bits3val():
             the corresponding bit in val is invalid
     """
     _BOOL = Bits3t(1)
-
+    _SIGNED_FOR_SLICE_CONCAT_RESULT = False
     def __init__(self, t: Bits3t, val: int, vld_mask: int):
         if not isinstance(t, Bits3t):
             raise TypeError(t)
@@ -276,7 +282,7 @@ class Bits3val():
         """
         return dtype.from_py(self.val, self.vld_mask)
 
-    def cast_sign(self, signed) -> "Bits3val":
+    def cast_sign(self, signed: Optional[bool]) -> "Bits3val":
         """
         Cast signed-unsigned value
         """
@@ -325,7 +331,7 @@ class Bits3val():
         w = self._dtype.bit_length()
         other_w = other._dtype.bit_length()
         resWidth = w + other_w
-        resT = self._dtype.__class__(resWidth, signed=False)
+        resT = self._dtype.__class__(resWidth, signed=self._SIGNED_FOR_SLICE_CONCAT_RESULT)
         other_val = other.val
         if other_val < 0:
             other_val = to_unsigned(other_val, other_w)
@@ -362,7 +368,7 @@ class Bits3val():
         else:
             raise TypeError(key)
 
-        new_t = self._dtype.__class__(size, signed=False)
+        new_t = self._dtype.__class__(size, signed=self._SIGNED_FOR_SLICE_CONCAT_RESULT)
         return new_t._from_py(val, vld)
 
     def __setitem__(self, index: Union[slice, int, "Bits3val"],
@@ -689,7 +695,7 @@ def bitsCmp__val(self: Bits3val, other: Union[Bits3val, int],
     else:
         ot = other._dtype
         w = t.bit_length()
-        if t.signed != ot.signed or w != ot.bit_length():
+        if bool(t.signed) != bool(ot.signed) or w != ot.bit_length():
             raise TypeError("Value compare supports only same width and sign type", t, ot)
 
     vld = self.vld_mask & other.vld_mask
