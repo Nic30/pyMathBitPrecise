@@ -566,13 +566,17 @@ class Bits3val():
             if o < 0:
                 raise ValueError("negative shift count")
             w = self._dtype.bit_length()
-            v.vld_mask >>= o
-            v.vld_mask |= bit_field(w - o, w)
-            if v.val < 0:
-                assert self._dtype.signed
-                v.val = to_unsigned(v.val, w)
-            v.val >>= o
-
+            if o < w:
+                v.vld_mask >>= o
+                v.vld_mask |= bit_field(w - o, w)
+                if v.val < 0:
+                    assert self._dtype.signed
+                    v.val = to_unsigned(v.val, w)
+                v.val >>= o
+            else:
+                # completely shifted out
+                v.val = 0
+                v.vld_mask = mask(w)
         return v
 
     def __lshift__(self, other: Union[int, "Bits3val"]) -> "Bits3val":
