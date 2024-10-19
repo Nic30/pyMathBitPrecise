@@ -210,18 +210,18 @@ class Bits3t():
         if self.name is not None:
             constr.append(f'"{self.name:s}"')
         c = self.bit_length()
-        
+
         if self.signed:
             sign = "i"
         elif self.signed is False:
             sign = "u"
         else:
             sign = "b"
-            
+
         constr.append(f"{sign:s}{c:d}")
         if self.force_vector:
             constr.append("force_vector")
-        
+
         if not self.strict_sign:
             constr.append("strict_sign=False")
         if not self.strict_width:
@@ -242,6 +242,7 @@ class Bits3val():
     """
     _BOOL = Bits3t(1)
     _SIGNED_FOR_SLICE_CONCAT_RESULT = False
+
     def __init__(self, t: Bits3t, val: int, vld_mask: int):
         if not isinstance(t, Bits3t):
             raise TypeError(t)
@@ -268,7 +269,7 @@ class Bits3val():
     def __int__(self) -> int:
         "int(self)"
         if not self._is_full_valid():
-            raise ValidityError()
+            raise ValidityError(self)
 
         return self.val
 
@@ -549,11 +550,12 @@ class Bits3val():
         return bitsArithOp__val(self._dtype.from_py(other), self, add)
 
     def __rshift__(self, other: Union[int, "Bits3val"]) -> "Bits3val":
-        "Operator >>."
+        "Operator >> (arithmetic, shifts in MSB)."
         try:
             o = int(other)
         except ValidityError:
             o = None
+
         v = self.__copy__()
         if o is None:
             v.vld_mask = 0
@@ -574,7 +576,7 @@ class Bits3val():
         return v
 
     def __lshift__(self, other: Union[int, "Bits3val"]) -> "Bits3val":
-        "Operator <<."
+        "Operator <<. (shifts in 0)"
         try:
             o = int(other)
         except ValidityError:

@@ -347,7 +347,7 @@ def is_power_of_2(v: Union["Bits3val", int]):
 
 def next_power_of_2(v: Union["Bits3val", int], width:Optional[int]=None):
     # depend on the fact that v < 2^width
-    v -= 1
+    v = v - 1
     if isinstance(v, int):
         v = to_unsigned(v, width)
     else:
