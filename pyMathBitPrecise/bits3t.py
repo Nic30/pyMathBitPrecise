@@ -666,6 +666,23 @@ class Bits3val():
         return f"<{self.__class__.__name__:s} {typeDescrChar:s}{t.bit_length():d} {repr(self.val):s}{m:s}>"
 
 
+def bitsBitOp__lshr(self: Bits3val, other: Union[Bits3val, int]):
+    t = self._dtype
+    width = t.bit_length()
+    try:
+        other = int(other)
+    except ValidityError:
+        return t.from_py(None)
+    assert other >= 0
+
+    if t.signed:
+        v = to_unsigned(self.val, width)
+        v >>= other
+        v = to_signed(v, width)
+
+    return t.from_py(v, self.vld_mask >> other)
+
+
 def bitsBitOp__val(self: Bits3val, other: Union[Bits3val, int],
                    evalFn, getVldFn) -> "Bits3val":
     """
