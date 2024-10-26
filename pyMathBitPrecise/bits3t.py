@@ -141,7 +141,7 @@ class Bits3t():
                 vld = all_mask
             else:
                 if vld_mask > all_mask or vld_mask < 0:
-                    raise ValueError("Mask in incorrect format", vld_mask)
+                    raise ValueError("Mask in incorrect format", vld_mask, w, all_mask)
                 vld = vld_mask
 
             if val < 0:
