@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: UTF-8 -*-
-from typing import List, Tuple, Generator, Union, Optional
+from typing import List, Tuple, Generator, Union, Optional, Literal, Sequence
 
 from pyMathBitPrecise.utils import grouper
 
@@ -110,7 +110,7 @@ def align_with_known_width(val, width: int, lowerBitCntToAlign: int):
     return val & (mask(width - lowerBitCntToAlign) << lowerBitCntToAlign)
 
 
-def iter_bits(val: int, length: int) -> Generator[int, None, None]:
+def iter_bits(val: int, length: int) -> Generator[Literal[0, 1], None, None]:
     """
     Iterate bits in int. LSB first.
     """
@@ -119,7 +119,7 @@ def iter_bits(val: int, length: int) -> Generator[int, None, None]:
         val >>= 1
 
 
-def iter_bits_sequences(val: int, length: int) -> Generator[Tuple[int, int], None, None]:
+def iter_bits_sequences(val: int, length: int) -> Generator[Tuple[Literal[0, 1], int], None, None]:
     """
     Iter tuples (bitVal, number of same bits), lsb first
     """
@@ -130,7 +130,7 @@ def iter_bits_sequences(val: int, length: int) -> Generator[Tuple[int, int], Non
     valBit = val & 1
     val >>= 1
     foundBit = valBit
-    for _ in range(length-1):
+    for _ in range(length - 1):
         # extract single bit from val
         valBit = val & 1
         val >>= 1
@@ -224,7 +224,7 @@ def normalize_slice(s: slice, obj_width: int) -> Tuple[int, int]:
     return firstBitNo, size
 
 
-def reverse_bits(val, width):
+def reverse_bits(val: int, width: int):
     """
     Reverse bits in integer value of specified width
     """
@@ -234,7 +234,7 @@ def reverse_bits(val, width):
     return v
 
 
-def extend_to_size(collection, items, pad=0):
+def extend_to_size(collection: Sequence, items: int, pad=0):
     toAdd = items - len(collection)
     assert toAdd >= 0
     for _ in range(toAdd):
@@ -243,7 +243,7 @@ def extend_to_size(collection, items, pad=0):
     return collection
 
 
-def bit_list_reversed_endianity(bitList, extend=True):
+def bit_list_reversed_endianity(bitList: List[Literal[0, 1]], extend=True):
     w = len(bitList)
     i = w
 
@@ -260,7 +260,7 @@ def bit_list_reversed_endianity(bitList, extend=True):
     return items
 
 
-def bit_list_reversed_bits_in_bytes(bitList: List[int], extend=None):
+def bit_list_reversed_bits_in_bytes(bitList: List[Literal[0, 1]], extend=None):
     "Byte reflection  (0x0f -> 0xf0)"
     w = len(bitList)
     if extend is None:
@@ -277,14 +277,37 @@ def bit_list_reversed_bits_in_bytes(bitList: List[int], extend=None):
     return tmp
 
 
-def byte_list_to_be_int(_bytes: List[int]):
+def bytes_to_bit_list_lower_bit_first(bytes_: bytes) -> List[Literal[0, 1]]:
+    """
+    b'\x01' to [1, 0, 0, 0, 0, 0, 0, 0]
+    """
+    result: List[Literal[0, 1]] = []
+    for byte in bytes_:
+        for _ in range(8):
+            result.append(byte & 0b1)
+            byte >>= 1
+    return result
+
+def bytes_to_bit_list_upper_bit_first(bytes_: bytes) -> List[Literal[0, 1]]:
+    """
+    b'\x01' to [0, 0, 0, 0, 0, 0, 0, 1]
+    """
+    result: List[Literal[0, 1]] = []
+    for byte in bytes_:
+        for _ in range(8):
+            result.append((byte & 0x80) >> 7)
+            byte <<= 1
+    return result
+
+
+def byte_list_to_be_int(_bytes: List[Literal[0, 1, 2, 3, 4, 5, 6, 7]]):
     """
     In input list LSB first, in result little endian ([1, 0] -> 0x0001)
     """
     return int_list_to_int(_bytes, 8)
 
 
-def bit_list_to_int(bitList: List[int]):
+def bit_list_to_int(bitList: List[Literal[0, 1]]):
     """
     In input list LSB first, in result little endian ([0, 1] -> 0b10)
     """
@@ -293,6 +316,11 @@ def bit_list_to_int(bitList: List[int]):
         res |= (r & 0x1) << i
     return res
 
+def bit_list_to_bytes(bitList: List[Literal[0, 1]]) -> bytes:
+    byteCnt = len(bitList) // 8
+    if len(bitList) % 8:
+        byteCnt += 1
+    return bit_list_to_int(bitList).to_bytes(byteCnt, 'big')
 
 def int_list_to_int(il: List[int], item_width: int):
     """
@@ -332,7 +360,7 @@ def reverse_byte_order(val: "Bits3val"):
         lower = max(i - 8, 0)
         items.append(val[i:lower])
         i -= 8
-    
+
     # Concat(*items)
     top = None
     for s in items:
@@ -342,8 +370,10 @@ def reverse_byte_order(val: "Bits3val"):
             top = top._concat(s)
     return top
 
+
 def is_power_of_2(v: Union["Bits3val", int]):
     return ~(v & (v - 1))
+
 
 def next_power_of_2(v: Union["Bits3val", int], width:Optional[int]=None):
     # depend on the fact that v < 2^width
@@ -355,11 +385,11 @@ def next_power_of_2(v: Union["Bits3val", int], width:Optional[int]=None):
 
     i = 1
     while True:
-        v |= (v >> i) # 1, 2, 4, 8, 16 for 32b
+        v |= (v >> i)  # 1, 2, 4, 8, 16 for 32b
         i <<= 1
         if i > width // 2:
             break
-    
+
     v = v + 1
 
     if isinstance(v, int):
