@@ -243,6 +243,22 @@ def extend_to_size(collection: Sequence, items: int, pad=0):
     return collection
 
 
+def rotate_right(v: int, width: int, shAmount:int):
+    # https://www.geeksforgeeks.org/rotate-bits-of-an-integer/
+    assert v >= 0, v
+    assert width > 0, width
+    assert shAmount >= 0, shAmount
+    return (v >> shAmount) | ((v << (width - shAmount)) & mask(width))
+
+
+def rotate_left(v: int, width: int, shAmount:int):
+    # https://www.geeksforgeeks.org/rotate-bits-of-an-integer/
+    assert v >= 0, v
+    assert width > 0, width
+    assert shAmount >= 0, shAmount
+    return ((v << shAmount) & mask(width)) | (v >> (width - shAmount))
+
+
 def bit_list_reversed_endianity(bitList: List[Literal[0, 1]], extend=True):
     w = len(bitList)
     i = w
@@ -288,6 +304,7 @@ def bytes_to_bit_list_lower_bit_first(bytes_: bytes) -> List[Literal[0, 1]]:
             byte >>= 1
     return result
 
+
 def bytes_to_bit_list_upper_bit_first(bytes_: bytes) -> List[Literal[0, 1]]:
     """
     b'\x01' to [0, 0, 0, 0, 0, 0, 0, 1]
@@ -316,11 +333,13 @@ def bit_list_to_int(bitList: List[Literal[0, 1]]):
         res |= (r & 0x1) << i
     return res
 
+
 def bit_list_to_bytes(bitList: List[Literal[0, 1]]) -> bytes:
     byteCnt = len(bitList) // 8
     if len(bitList) % 8:
         byteCnt += 1
     return bit_list_to_int(bitList).to_bytes(byteCnt, 'big')
+
 
 def int_list_to_int(il: List[int], item_width: int):
     """
