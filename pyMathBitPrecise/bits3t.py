@@ -5,7 +5,7 @@ from copy import copy
 from enum import Enum
 from math import log2, ceil
 from operator import le, ge, gt, lt, ne, eq, and_, or_, xor, sub, add
-from typing import Union, Optional
+from typing import Union, Optional, Callable
 
 from pyMathBitPrecise.array3t import Array3t
 from pyMathBitPrecise.bit_utils import mask, get_bit, get_bit_range, \
@@ -270,8 +270,10 @@ class Bits3val():
         "int(self)"
         if not self._is_full_valid():
             raise ValidityError(self)
-
-        return self.val
+        if self._dtype.signed:
+            return to_signed(self.val, self._dtype.bit_length())
+        else:
+            return self.val
 
     def __bool__(self) -> bool:
         "bool(self)"
@@ -666,7 +668,7 @@ class Bits3val():
         else:
             m = ""
         typeDescrChar = 'b' if t.signed is None else 'i' if t.signed else 'u'
-        return f"<{self.__class__.__name__:s} {typeDescrChar:s}{t.bit_length():d} {repr(self.val):s}{m:s}>"
+        return f"<{self.__class__.__name__:s} {typeDescrChar:s}{t.bit_length():d} {to_signed(self.val, t.bit_length()) if t.signed else self.val:d}{m:s}>"
 
 
 def bitsBitOp__ror(self: Bits3val, shAmount: Union[Bits3val, int]):
@@ -750,7 +752,7 @@ def bitsBitOp__val(self: Bits3val, other: Union[Bits3val, int],
 
 
 def bitsCmp__val(self: Bits3val, other: Union[Bits3val, int],
-                 evalFn) -> "Bits3val":
+                 evalFn: Callable[[int, int], bool]) -> "Bits3val":
     """
     Apply comparative operator
     """
@@ -773,7 +775,7 @@ def bitsCmp__val(self: Bits3val, other: Union[Bits3val, int],
 
 
 def bitsArithOp__val(self: Bits3val, other: Union[Bits3val, int],
-                     evalFn) -> "Bits3val":
+                     evalFn: Callable[[int, int], int]) -> "Bits3val":
     """
     Apply arithmetic operator
     """
