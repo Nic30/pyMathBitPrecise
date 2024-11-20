@@ -10,7 +10,7 @@ from typing import Union, Optional
 from pyMathBitPrecise.array3t import Array3t
 from pyMathBitPrecise.bit_utils import mask, get_bit, get_bit_range, \
     to_signed, set_bit_range, bit_set_to, bit_field, to_unsigned, INT_BASES, \
-    ValidityError, normalize_slice
+    ValidityError, normalize_slice, rotate_right, rotate_left
 from pyMathBitPrecise.bits3t_vld_masks import vld_mask_for_xor, vld_mask_for_and, \
     vld_mask_for_or
 
@@ -602,8 +602,7 @@ class Bits3val():
             v.vld_mask &= m
             v.val <<= o
             v.val &= m
-            if t.signed:
-                v.val = to_signed(v.val, t.bit_length())
+            assert v.val >= 0, v.val
         return v
 
     def __floordiv__(self, other: Union[int, "Bits3val"]) -> "Bits3val":
@@ -670,21 +669,66 @@ class Bits3val():
         return f"<{self.__class__.__name__:s} {typeDescrChar:s}{t.bit_length():d} {repr(self.val):s}{m:s}>"
 
 
-def bitsBitOp__lshr(self: Bits3val, other: Union[Bits3val, int]):
+def bitsBitOp__ror(self: Bits3val, shAmount: Union[Bits3val, int]):
+    """
+    rotate right by specified amount
+    """
     t = self._dtype
     width = t.bit_length()
     try:
-        other = int(other)
+        shAmount = int(shAmount)
     except ValidityError:
         return t.from_py(None)
-    assert other >= 0
+    assert shAmount >= 0
 
     if t.signed:
         v = to_unsigned(self.val, width)
-        v >>= other
+    else:
+        v = self.val
+    v = rotate_right(v, width, shAmount)
+    if t.signed:
         v = to_signed(v, width)
+    return t.from_py(v, rotate_right(self.vld_mask, width, shAmount))
 
-    return t.from_py(v, self.vld_mask >> other)
+
+def bitsBitOp__rol(self: Bits3val, shAmount: Union[Bits3val, int]):
+    """
+    rotate left by specified amount
+    """
+    t = self._dtype
+    width = t.bit_length()
+    try:
+        shAmount = int(shAmount)
+    except ValidityError:
+        return t.from_py(None)
+    assert shAmount >= 0
+    if t.signed:
+        v = to_unsigned(self.val, width)
+    else:
+        v = self.val
+    v = rotate_left(v, width, shAmount)
+    if t.signed:
+        v = to_signed(v, width)
+    return t.from_py(v, rotate_left(self.vld_mask, width, shAmount))
+
+
+def bitsBitOp__lshr(self: Bits3val, shAmount: Union[Bits3val, int]):
+    t = self._dtype
+    width = t.bit_length()
+    try:
+        shAmount = int(shAmount)
+    except ValidityError:
+        return t.from_py(None)
+    assert shAmount >= 0
+
+    if t.signed:
+        v = to_unsigned(self.val, width)
+    else:
+        v = self.val
+    v >>= shAmount
+    if t.signed:
+        v = to_signed(v, width)
+    return t.from_py(v, self.vld_mask >> shAmount)
 
 
 def bitsBitOp__val(self: Bits3val, other: Union[Bits3val, int],
