@@ -1,14 +1,14 @@
+from decimal import DecimalTuple
 import math
+from operator import lt, le, ge, gt, add, truediv, sub, mul
 from typing import Union, Optional, Tuple
 
+from pyMathBitPrecise.array3t import Array3t
 from pyMathBitPrecise.bit_utils import ValidityError
 from pyMathBitPrecise.bits3t import Bits3t
-from decimal import DecimalTuple
-from pyMathBitPrecise.array3t import Array3t
-from operator import lt, le, ge, gt, add, truediv, sub, mul
+
+
 # from decimal import Decimal, DecimalTuple, localcontext, Context, DefaultContext
-
-
 class Floatt():
     """
     IEEE 754 like float type with configurable sizes fo exponent and mantisa.
