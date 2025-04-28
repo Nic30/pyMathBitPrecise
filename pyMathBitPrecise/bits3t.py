@@ -176,7 +176,7 @@ class Bits3t():
                 _val = to_signed(val & all_mask, w)
                 if _val != val:
                     raise ValueError("Too large value", val, _val)
-                val = _val
+                val = to_unsigned(_val, w)
             else:
                 if self.signed:
                     msb = 1 << (w - 1)
@@ -444,18 +444,10 @@ class Bits3val():
 
     def __neg__(self) -> Self:
         "Operator -x."
-        if not self._dtype.signed:
-            raise TypeError("- operator is defined only for signed")
-
         v = self.__copy__()
-        _v = -v.val
-        _max = self._dtype.all_mask() >> 1
-        _min = -_max - 1
-        if _v > _max:
-            _v = _min + (_v - _max - 1)
-        elif _v < _min:
-            _v = _max - (_v - _min + 1)
-        v.val = _v
+        width = self._dtype.bit_length()
+        _v = -to_signed(v.val, width)
+        v.val = to_unsigned(_v, width)
         return v
 
     def __hash__(self) -> int:
@@ -562,35 +554,12 @@ class Bits3val():
         "Operator +."
         return bitsArithOp__val(self._dtype.from_py(other), self, add)
 
-    def __rshift__(self, other: Union[int, "Bits3val"]) -> "Bits3val":
-        "Operator >> (arithmetic, shifts in MSB)."
-        try:
-            o = int(other)
-        except ValidityError:
-            o = None
-
-        v = self.__copy__()
-        if o is None:
-            v.vld_mask = 0
-            v.val = 0
-        elif o == 0:
-            return v
+    def __rshift__(self, other: Union[int, Self]) -> Self:
+        "Operator >>."
+        if self._dtype.signed:
+            return bitsBitOp__ashr(self, other)
         else:
-            if o < 0:
-                raise ValueError("negative shift count")
-            w = self._dtype.bit_length()
-            if o < w:
-                v.vld_mask >>= o
-                v.vld_mask |= bit_field(w - o, w)
-                if v.val < 0:
-                    assert self._dtype.signed
-                    v.val = to_unsigned(v.val, w)
-                v.val >>= o
-            else:
-                # completely shifted out
-                v.val = 0
-                v.vld_mask = mask(w)
-        return v
+            return bitsBitOp__lshr(self, other)
 
     def __lshift__(self, other: Union[int, Self]) -> Self:
         "Operator <<. (shifts in 0)"
@@ -621,12 +590,23 @@ class Bits3val():
     def __floordiv__(self, other: Union[int, Self]) -> Self:
         "Operator //."
         other_is_int = isinstance(other, int)
+        t = self._dtype
         if other_is_int:
-            v = self.val // other
+            v0 = self.val
+            if t.signed:
+                w = t.bit_length()
+                v0 = to_signed(v0, w)
+            v = v0 // other
             m = self._dtype.all_mask()
         else:
             if self._is_full_valid() and other._is_full_valid():
-                v = self.val // other.val
+                v0 = self.val
+                v1 = other.val
+                if t.signed:
+                    w = t.bit_length()
+                    v0 = to_signed(v0, w)
+                    v1 = to_signed(v1, w)
+                v = v0 // v1
                 m = self._dtype.all_mask()
             else:
                 v = 0
@@ -638,9 +618,56 @@ class Bits3val():
         resT = self._dtype
         other_is_int = isinstance(other, int)
         if other_is_int:
-            v = self.val * other
+            v0 = self.val
+            if resT.signed:
+                w = resT.bit_length()
+                v0 = to_signed(v0, w)
+
+            v = v0 * other
         elif isinstance(other, Bits3val):
-            v = self.val * other.val
+            v0 = self.val
+            v1 = other.val
+            if resT.signed:
+                w = resT.bit_length()
+                v0 = to_signed(v0, w)
+                v1 = to_signed(v1, w)
+
+            v = v0 * v1
+        else:
+            raise TypeError(other)
+
+        v &= resT.all_mask()
+        if resT.signed:
+            v = to_signed(v, resT.bit_length())
+
+        if self._is_full_valid() and (other_is_int
+                                      or other._is_full_valid()):
+            vld_mask = resT._all_mask
+        else:
+            vld_mask = 0
+
+        return resT._from_py(v, vld_mask)
+
+    def __mod__(self, other: Union[int, Self]) -> Self:
+        "Operator %."
+        resT = self._dtype
+        other_is_int = isinstance(other, int)
+        if other_is_int:
+            v0 = self.val
+            if resT.signed:
+                w = resT.bit_length()
+                v0 = to_signed(v0, w)
+
+            v = v0 % other
+        elif isinstance(other, Bits3val):
+            v0 = self.val
+            v1 = other.val
+            if resT.signed:
+                w = resT.bit_length()
+                v0 = to_signed(v0, w)
+                v1 = to_signed(v1, w)
+
+            v = v0 % v1
         else:
             raise TypeError(other)
 
@@ -698,11 +725,7 @@ def bitsBitOp__ror(self: Bits3val, shAmount: Union[Bits3val, int]):
         return t.from_py(None)
     assert shAmount >= 0
 
-    if t.signed:
-        v = to_unsigned(self.val, width)
-    else:
-        v = self.val
-    v = rotate_right(v, width, shAmount)
+    v = rotate_right(self.val, width, shAmount)
     if t.signed:
         v = to_signed(v, width)
     return t.from_py(v, rotate_right(self.vld_mask, width, shAmount))
@@ -719,33 +742,67 @@ def bitsBitOp__rol(self: Bits3val, shAmount: Union[Bits3val, int]):
     except ValidityError:
         return t.from_py(None)
     assert shAmount >= 0
-    if t.signed:
-        v = to_unsigned(self.val, width)
-    else:
-        v = self.val
-    v = rotate_left(v, width, shAmount)
+    v = rotate_left(self.val, width, shAmount)
     if t.signed:
         v = to_signed(v, width)
     return t.from_py(v, rotate_left(self.vld_mask, width, shAmount))
 
 
-def bitsBitOp__lshr(self: Bits3val, shAmount: Union[Bits3val, int]):
+def bitsBitOp__lshr(self: Bits3val, shAmount: Union[Bits3val, int]) -> Bits3val:
+    """
+    logical shift right (shifts in 0)
+    """
     t = self._dtype
     width = t.bit_length()
     try:
-        shAmount = int(shAmount)
+        sh = int(shAmount)
     except ValidityError:
         return t.from_py(None)
-    assert shAmount >= 0
+    assert sh >= 0, sh
 
-    if t.signed:
-        v = to_unsigned(self.val, width)
-    else:
-        v = self.val
-    v >>= shAmount
+    if sh >= width:
+        # all bits are shifted out
+        return t.from_py(0, mask(width))
+
+    v = self.val >> sh
     if t.signed:
         v = to_signed(v, width)
-    return t.from_py(v, self.vld_mask >> shAmount)
+    newBitsMask = bit_field(width - sh, width)
+    return t.from_py(v, (self.vld_mask >> sh) | newBitsMask)
+
+
+def bitsBitOp__ashr(self: Bits3val, shAmount: Union[Bits3val, int]) -> Bits3val:
+    """
+    arithmetic shift right (shifts in MSB)
+    """
+    try:
+        sh = int(shAmount)
+    except ValidityError:
+        sh = None
+
+    v = self.__copy__()
+    if sh is None:
+        v.vld_mask = 0
+        v.val = 0
+    elif sh == 0:
+        pass
+    else:
+        if shAmount < 0:
+            raise ValueError("negative shift count")
+        w = self._dtype.bit_length()
+        if sh < w:
+            msb = v.val >> (w - 1)
+            newBitsMask = bit_field(w - sh, w)
+            v.vld_mask >>= sh
+            v.vld_mask |= newBitsMask  # set newly shifted-in bits to defined
+            v.val >>= sh
+            if msb:
+                v.val |= newBitsMask
+        else:
+            # completely shifted out
+            v.val = 0
+            v.vld_mask = mask(w)
+    return v
 
 
 def bitsBitOp__val(self: Bits3val, other: Union[Bits3val, int],
@@ -760,8 +817,7 @@ def bitsBitOp__val(self: Bits3val, other: Union[Bits3val, int],
     assert w == other._dtype.bit_length(), (res_t, other._dtype)
     vld = getVldFn(self, other)
     res = evalFn(self.val, other.val) & vld
-    if res_t.signed:
-        res = to_signed(res, w)
+    assert res >= 0, res
 
     return res_t._from_py(res, vld)
 
@@ -772,19 +828,24 @@ def bitsCmp__val(self: Bits3val, other: Union[Bits3val, int],
     Apply comparative operator
     """
     t = self._dtype
+    w = t.bit_length()
     if isinstance(other, int):
         other = t.from_py(other)
         ot = other._dtype
-        w = t.bit_length()
     else:
         ot = other._dtype
-        w = t.bit_length()
         if bool(t.signed) != bool(ot.signed) or w != ot.bit_length():
             raise TypeError("Value compare supports only same width and sign type", t, ot)
 
+    v0 = self.val
+    v1 = other.val
+    if t.signed:
+        v0 = to_signed(v0, w)
+        v1 = to_signed(v1, w)
+
     vld = self.vld_mask & other.vld_mask
     _vld = int(vld == t._all_mask)
-    res = evalFn(self.val, other.val) & _vld
+    res = evalFn(v0, v1) & _vld
 
     return self._BOOL._from_py(int(res), int(_vld))
 
@@ -799,23 +860,22 @@ def bitsArithOp__val(self: Bits3val, other: Union[Bits3val, int],
     v = self.__copy__()
     self_vld = self._is_full_valid()
     other_vld = other._is_full_valid()
-
-    v.val = evalFn(self.val, other.val)
-
+    v0 = self.val
+    v1 = other.val
     w = v._dtype.bit_length()
-    if self._dtype.signed:
-        _v = v.val
-        _max = mask(w - 1)
-        _min = -_max - 1
-        if _v > _max:
-            _v = _min + (_v - _max - 1)
-        elif _v < _min:
-            _v = _max - (_v - _min + 1)
+    t = self._dtype
+    if t.signed:
+        v0 = to_signed(v0, w)
+        v1 = to_signed(v1, w)
 
-        v.val = _v
+    _v = evalFn(v0, v1)
+
+    if t.signed:
+        _v = to_unsigned(_v, w)
     else:
-        v.val &= mask(w)
+        _v &= mask(w)
 
+    v.val = _v
     if self_vld and other_vld:
         v.vld_mask = mask(w)
     else:
