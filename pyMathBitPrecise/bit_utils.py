@@ -399,6 +399,7 @@ def next_power_of_2(v: Union["Bits3val", int], width:Optional[int]=None):
     v = v - 1
     if isinstance(v, int):
         v = to_unsigned(v, width)
+        assert width is not None
     else:
         width = v._dtype.bit_length()
 
@@ -414,3 +415,15 @@ def next_power_of_2(v: Union["Bits3val", int], width:Optional[int]=None):
     if isinstance(v, int):
         v &= mask(width)
     return v
+
+
+def round_up_to_multiple_of(v: int, divider:int):
+    """
+    Round up the v to be the multiple of divider
+    """
+    _v = (v // divider) * divider
+    if _v < v:
+        return _v + divider
+    else:
+        return _v
+
