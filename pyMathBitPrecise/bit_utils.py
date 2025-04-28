@@ -480,3 +480,30 @@ def ctpop(val: int, width: int):
             break
         val >>= 64
     return res
+
+
+def cttz(val: int, width:int):
+    """
+    Count trailing zeros
+    """
+    if val == 0:
+        return width
+    if val & 0x1:
+        return 0
+
+    # ctpop method: (x & -x).bit_length() - 1
+    # Bisection method.
+    ZeroBits = 0
+    if not is_power_of_2(width):
+        w = next_power_of_2(width, 64)  # because alg. works only for pow2  width
+    Shift = w >> 1
+    Mask = mask(w) >> Shift
+    while Shift:
+        if (val & Mask) == 0:
+            val >>= Shift
+            ZeroBits |= Shift
+
+        Shift >>= 1
+        Mask >>= Shift
+
+    return ZeroBits
