@@ -39,14 +39,6 @@ assert b._dtype == uint512_t
 c = a >> 8
 assert c._eq(0)
 assert c._dtype == uint512_t
-
-# casting
-d = int(a)
-assert d == 1 and isinstance(d, int)
-
-uint8_t = Bits3t(8, signed=False)
-e = a.cast(uint8_t)
-assert e._dtype == uint8_t
 ```
 
 ## Similar projects

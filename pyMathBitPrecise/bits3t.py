@@ -5,7 +5,7 @@ from copy import copy
 from enum import Enum
 from math import log2, ceil
 from operator import le, ge, gt, lt, ne, eq, and_, or_, xor, sub, add
-from typing import Union, Optional, Callable
+from typing import Union, Optional, Callable, Self
 
 from pyMathBitPrecise.array3t import Array3t
 from pyMathBitPrecise.bit_utils import mask, get_bit, get_bit_range, \
@@ -13,6 +13,12 @@ from pyMathBitPrecise.bit_utils import mask, get_bit, get_bit_range, \
     ValidityError, normalize_slice, rotate_right, rotate_left
 from pyMathBitPrecise.bits3t_vld_masks import vld_mask_for_xor, vld_mask_for_and, \
     vld_mask_for_or
+
+
+class _NOT_SPECIFIED:
+
+    def __init__(self):
+        raise AssertionError("This class should be used as a constant")
 
 
 class Bits3t():
@@ -51,7 +57,27 @@ class Bits3t():
         self.strict_sign = strict_sign
         self.strict_width = strict_width
 
-    def __copy__(self):
+    def _createMutated(self,
+            bit_length: int=_NOT_SPECIFIED,
+            signed:Optional[bool]=_NOT_SPECIFIED, name: Optional[str]=_NOT_SPECIFIED,
+            force_vector=_NOT_SPECIFIED,
+            strict_sign=_NOT_SPECIFIED,
+            strict_width=_NOT_SPECIFIED) -> Self:
+        if bit_length is _NOT_SPECIFIED:
+            bit_length = self._bit_length
+        if signed is  _NOT_SPECIFIED:
+            signed = self.signed
+        if name  is _NOT_SPECIFIED:
+            name = self.name
+        if force_vector is _NOT_SPECIFIED:
+            force_vector = self.force_vector
+        if strict_sign is _NOT_SPECIFIED:
+            strict_sign = self.strict_sign
+        if strict_width is _NOT_SPECIFIED:
+            strict_width = self.strict_width
+        return self.__class__(bit_length, signed=signed, name=name, force_vector=force_vector, strict_sign=strict_sign, strict_width=strict_width)
+
+    def __copy__(self) -> Self:
         t = self.__class__(self._bit_length, signed=self.signed,
                            name=self.name,
                            force_vector=self.force_vector,
@@ -59,20 +85,20 @@ class Bits3t():
                            strict_width=self.strict_width)
         return t
 
-    def all_mask(self):
+    def all_mask(self) -> int:
         """
         :return: mask for bites of this type ( 0b111 for Bits(3) )
         """
         return self._all_mask
 
-    def bit_length(self):
+    def bit_length(self) -> int:
         """
         :return: number of bits required for representation
             of value of this type
         """
         return self._bit_length
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         return (self is other
                 or (isinstance(other, Bits3t)
                     and self._bit_length == other._bit_length
@@ -84,7 +110,7 @@ class Bits3t():
                     )
                 )
 
-    def _normalize_val_and_mask(self, val, vld_mask):
+    def _normalize_val_and_mask(self, val: Optional[int], vld_mask: Optional[int]) -> tuple[int, int]:
         if val is None:
             vld = 0
             val = 0
@@ -166,7 +192,7 @@ class Bits3t():
                 val = val & vld
         return val, vld
 
-    def _from_py(self, val, vld_mask):
+    def _from_py(self, val: int, vld_mask: int) -> "Bits3val":
         """
         from_py without normalization
         """
@@ -237,6 +263,8 @@ class Bits3val():
 
     :ivar ~._dtype: reference on type of this value
     :ivar ~.val: always unsigned representation int value
+    :note: the reason why the unsigned is always used is that
+        the signed variant would require cast to unsigned on every bitwise operation
     :ivar ~.vld_mask: always unsigned value of the mask, if bit in mask is '0'
             the corresponding bit in val is invalid
     """
@@ -254,7 +282,7 @@ class Bits3val():
         self.val = val
         self.vld_mask = vld_mask
 
-    def __copy__(self):
+    def __copy__(self) -> Self:
         return self.__class__(self._dtype, self.val, self.vld_mask)
 
     def to_py(self) -> int:
@@ -285,7 +313,7 @@ class Bits3val():
         """
         return dtype.from_py(self.val, self.vld_mask)
 
-    def cast_sign(self, signed: Optional[bool]) -> "Bits3val":
+    def _cast_sign(self, signed: Optional[bool]) -> Self:
         """
         Cast signed-unsigned value
         """
@@ -300,31 +328,13 @@ class Bits3val():
         if selfSign and not signed:
             if _v < 0:
                 v.val = m + _v + 1
-        elif not selfSign and signed:
-            w = t.bit_length()
-            v.val = to_signed(_v, w)
 
         v._dtype = v._dtype.__copy__()
         v._dtype = self._dtype.__copy__()
         v._dtype.signed = signed
         return v
 
-    def cast(self, t: Bits3t) -> "Bits3val":
-        """
-        C++: static_cast<t>(self)
-
-        :note: no sign extension
-        """
-        v = self.__copy__()
-        v._dtype = t
-        m = t.all_mask()
-        v.val &= m
-        v.vld_mask &= m
-        if t.signed:
-            v.val = to_signed(v.val, t.bit_length())
-        return v
-
-    def _concat(self, other: "Bits3val") -> "Bits3val":
+    def _concat(self, other: "Bits3val") -> Self:
         """
         Concatenate two bit vectors together (self will be at MSB side)
         Verilog: {self, other}, VHDL: self & other
@@ -346,7 +356,7 @@ class Bits3val():
         v._dtype = resT
         return v
 
-    def __getitem__(self, key: Union[int, slice, "Bits3val"]) -> "Bits3val":
+    def __getitem__(self, key: Union[int, slice, Self]) -> Self:
         "self[key]"
         if isinstance(key, slice):
             firstBitNo, size = normalize_slice(key, self._dtype.bit_length())
@@ -374,8 +384,8 @@ class Bits3val():
         new_t = self._dtype.__class__(size, signed=self._SIGNED_FOR_SLICE_CONCAT_RESULT)
         return new_t._from_py(val, vld)
 
-    def __setitem__(self, index: Union[slice, int, "Bits3val"],
-                    value: Union["Bits3val", int]):
+    def __setitem__(self, index: Union[slice, int, Self],
+                    value: Union[int, Self]):
         "An item assignment operator self[index] = value."
         if isinstance(index, slice):
             firstBitNo, size = normalize_slice(index, self._dtype.bit_length())
@@ -421,17 +431,18 @@ class Bits3val():
                     self.val = bit_set_to(self.val, index, v)
                     self.vld_mask = bit_set_to(self.vld_mask, index, m)
 
-    def __invert__(self) -> "Bits3val":
+    def __invert__(self) -> Self:
         "Operator ~x."
         v = self.__copy__()
         v.val = ~v.val
         w = v._dtype.bit_length()
         v.val &= mask(w)
-        if self._dtype.signed:
-            v.val = to_signed(v.val, w)
+        if v.val < 0:
+            v.val = to_unsigned(v.val, w)
+
         return v
 
-    def __neg__(self):
+    def __neg__(self) -> Self:
         "Operator -x."
         if not self._dtype.signed:
             raise TypeError("- operator is defined only for signed")
@@ -447,107 +458,107 @@ class Bits3val():
         v.val = _v
         return v
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash((self._dtype, self.val, self.vld_mask))
 
-    def _is(self, other):
+    def _is(self, other) -> bool:
         """check if other is object with same values"""
         return isinstance(other, Bits3val)\
             and self._dtype == other._dtype\
             and self.val == other.val\
             and self.vld_mask == other.vld_mask
 
-    def _eq(self, other: Union[int, "Bits3val"]) -> "Bits3val":
+    def _eq(self, other: Union[int, Self]) -> Self:
         """
         Operator self._eq(other) as self == other
         == is not overridden in order to prevent tricky behavior if hashing partially valid values
         """
         return bitsCmp__val(self, other, eq)
 
-    def __req__(self, other: int) -> "Bits3val":
+    def __req__(self, other: int) -> Self:
         "Operator ==."
         return bitsCmp__val(self._dtype.from_py(other), self, eq)
 
-    def __ne__(self, other: Union[int, "Bits3val"]) -> "Bits3val":
+    def __ne__(self, other: Union[int, Self]) -> Self:
         "Operator !=."
         return bitsCmp__val(self, other, ne)
 
-    def __rne__(self, other: int) -> "Bits3val":
+    def __rne__(self, other: int) -> Self:
         "Operator !=."
         return bitsCmp__val(self._dtype.from_py(other), self, ne)
 
-    def __lt__(self, other: Union[int, "Bits3val"]) -> "Bits3val":
+    def __lt__(self, other: Union[int, Self]) -> Self:
         "Operator <."
         return bitsCmp__val(self, other, lt)
 
-    def __rlt__(self, other: int) -> "Bits3val":
+    def __rlt__(self, other: int) -> Self:
         "Operator <."
         return bitsCmp__val(self._dtype.from_py(other), self, lt)
 
-    def __gt__(self, other: Union[int, "Bits3val"]) -> "Bits3val":
+    def __gt__(self, other: Union[int, Self]) -> Self:
         "Operator >."
         return bitsCmp__val(self, other, gt)
 
-    def __rgt__(self, other: int) -> "Bits3val":
+    def __rgt__(self, other: int) -> Self:
         "Operator >."
         return bitsCmp__val(self._dtype.from_py(other), self, gt)
 
-    def __ge__(self, other: Union[int, "Bits3val"]) -> "Bits3val":
+    def __ge__(self, other: Union[int, Self]) -> Self:
         "Operator >=."
         return bitsCmp__val(self, other, ge)
 
-    def __rge__(self, other: int) -> "Bits3val":
+    def __rge__(self, other: int) -> Self:
         "Operator >=."
         return bitsCmp__val(self._dtype.from_py(other), self, ge)
 
-    def __le__(self, other: Union[int, "Bits3val"]) -> "Bits3val":
+    def __le__(self, other: Union[int, Self]) -> Self:
         "Operator <=."
         return bitsCmp__val(self, other, le)
 
-    def __rle__(self, other: int) -> "Bits3val":
+    def __rle__(self, other: int) -> Self:
         "Operator <=."
         return bitsCmp__val(self._dtype.from_py(other), self, le)
 
-    def __xor__(self, other: Union[int, "Bits3val"]) -> "Bits3val":
+    def __xor__(self, other: Union[int, Self]) -> Self:
         "Operator ^."
         return bitsBitOp__val(self, other, xor, vld_mask_for_xor)
 
-    def __rxor__(self, other: int) -> "Bits3val":
+    def __rxor__(self, other: int) -> Self:
         "Operator ^."
         return bitsBitOp__val(self._dtype.from_py(other), self, xor,
                               vld_mask_for_xor)
 
-    def __and__(self, other: Union[int, "Bits3val"]) -> "Bits3val":
+    def __and__(self, other: Union[int, Self]) -> Self:
         "Operator &."
         return bitsBitOp__val(self, other, and_, vld_mask_for_and)
 
-    def __rand__(self, other: int) -> "Bits3val":
+    def __rand__(self, other: int) -> Self:
         "Operator &."
         return bitsBitOp__val(self._dtype.from_py(other), self, and_,
                               vld_mask_for_and)
 
-    def __or__(self, other: Union[int, "Bits3val"]) -> "Bits3val":
+    def __or__(self, other: Union[int, Self]) -> Self:
         "Operator |."
         return bitsBitOp__val(self, other, or_, vld_mask_for_or)
 
-    def __ror__(self, other: int) -> "Bits3val":
+    def __ror__(self, other: int) -> Self:
         "Operator |."
         return bitsBitOp__val(self._dtype.from_py(other), self, or_,
                               vld_mask_for_or)
 
-    def __sub__(self, other: Union[int, "Bits3val"]) -> "Bits3val":
+    def __sub__(self, other: Union[int, Self]) -> Self:
         "Operator -."
         return bitsArithOp__val(self, other, sub)
 
-    def __rsub__(self, other: Union[int, "Bits3val"]) -> "Bits3val":
+    def __rsub__(self, other: Union[int, Self]) -> Self:
         "Operator -."
         return bitsArithOp__val(self._dtype.from_py(other), self, sub)
 
-    def __add__(self, other: Union[int, "Bits3val"]) -> "Bits3val":
+    def __add__(self, other: Union[int, Self]) -> Self:
         "Operator +."
         return bitsArithOp__val(self, other, add)
 
-    def __radd__(self, other: Union[int, "Bits3val"]) -> "Bits3val":
+    def __radd__(self, other: Union[int, Self]) -> Self:
         "Operator +."
         return bitsArithOp__val(self._dtype.from_py(other), self, add)
 
@@ -581,7 +592,7 @@ class Bits3val():
                 v.vld_mask = mask(w)
         return v
 
-    def __lshift__(self, other: Union[int, "Bits3val"]) -> "Bits3val":
+    def __lshift__(self, other: Union[int, Self]) -> Self:
         "Operator <<. (shifts in 0)"
         try:
             o = int(other)
@@ -607,7 +618,7 @@ class Bits3val():
             assert v.val >= 0, v.val
         return v
 
-    def __floordiv__(self, other: Union[int, "Bits3val"]) -> "Bits3val":
+    def __floordiv__(self, other: Union[int, Self]) -> Self:
         "Operator //."
         other_is_int = isinstance(other, int)
         if other_is_int:
@@ -622,9 +633,8 @@ class Bits3val():
                 m = 0
         return self._dtype._from_py(v, m)
 
-    def __mul__(self, other: Union[int, "Bits3val"]) -> "Bits3val":
+    def __mul__(self, other: Union[int, Self]) -> Self:
         "Operator *."
-        # [TODO] resT should be wider
         resT = self._dtype
         other_is_int = isinstance(other, int)
         if other_is_int:
@@ -668,7 +678,12 @@ class Bits3val():
         else:
             m = ""
         typeDescrChar = 'b' if t.signed is None else 'i' if t.signed else 'u'
-        return f"<{self.__class__.__name__:s} {typeDescrChar:s}{t.bit_length():d} {to_signed(self.val, t.bit_length()) if t.signed else self.val:d}{m:s}>"
+        if t.bit_length() == 1 and t.force_vector:
+            vecSpec = "vec"
+        else:
+            vecSpec = ""
+        return (f"<{self.__class__.__name__:s} {typeDescrChar:s}{t.bit_length():d}{vecSpec:s}"
+                f" {to_signed(self.val, t.bit_length()) if t.signed else self.val:d}{m:s}>")
 
 
 def bitsBitOp__ror(self: Bits3val, shAmount: Union[Bits3val, int]):
