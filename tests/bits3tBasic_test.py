@@ -40,14 +40,9 @@ class Bits3tBasicTC(Bits3tBaseTC):
         else:
             ut = t
             t = Bits3t(w, True)
-        self.assertEqual(int(t.from_py(-1).cast(ut)), mask(w))
-        self.assertEqual(int(t.from_py(-1).cast_sign(False)), mask(w))
-        self.assertEqual(int(t.from_py(-1).cast_sign(None)), mask(w))
-        self.assertEqual(int(t.from_py(1).cast(ut)), 1)
-        self.assertEqual(int(t.from_py(0).cast(ut)), 0)
-        self.assertEqual(int(ut.from_py(1).cast(t)), 1)
-        self.assertEqual(int(ut.from_py(mask(w)).cast(t)), -1)
-        self.assertEqual(int(ut.from_py(mask(w)).cast_sign(True)), -1)
+        self.assertEqual(int(t.from_py(-1)._cast_sign(False)), mask(w))
+        self.assertEqual(int(t.from_py(-1)._cast_sign(None)), mask(w))
+        self.assertEqual(int(ut.from_py(mask(w))._cast_sign(True)), -1)
 
     def test_512b_proper_val(self):
         self.test_8b_proper_val(int512_t)

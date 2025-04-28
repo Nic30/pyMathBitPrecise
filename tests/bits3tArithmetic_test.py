@@ -14,13 +14,51 @@ class Bits3tArithmeticTC(Bits3tBaseTC):
         t = Bits3t(4)
         v = t.from_py(0xf)
         self.assertEqual(int(v), 0xf)
-        self.assertEqual(int(v.cast_sign(True)), -1)
-        self.assertEqual(int(v.cast_sign(True).cast_sign(False)), 0xf)
+        self.assertEqual(int(v._cast_sign(True)), -1)
+        self.assertEqual(int(v._cast_sign(True)._cast_sign(False)), 0xf)
 
         v = t.from_py(0xe)
         self.assertEqual(int(v), 0xe)
-        self.assertEqual(int(v.cast_sign(True)), -2)
-        self.assertEqual(int(v.cast_sign(True).cast_sign(False)), 0xe)
+        self.assertEqual(int(v._cast_sign(True)), -2)
+        self.assertEqual(int(v._cast_sign(True)._cast_sign(False)), 0xe)
+
+    def test_4b_sext(self):
+        t = Bits3t(4)
+        v = t.from_py(0xf)
+        self.assertEqual(int(v._sext(4)), 0x0f)
+        self.assertEqual(int(v._sext(5)), 0x1f)
+        self.assertEqual(int(v._sext(6)), 0x3f)
+        with self.assertRaises(AssertionError):
+            v._sext(3)
+
+        v = t.from_py(0b0111)
+        self.assertEqual(int(v._sext(4)), 0b0111)
+        self.assertEqual(int(v._sext(5)), 0b0111)
+        self.assertEqual(int(v._sext(6)), 0b0111)
+
+    def test_4b_zext(self):
+        t = Bits3t(4)
+        v = t.from_py(0xf)
+        self.assertEqual(int(v._zext(4)), 0xf)
+        self.assertEqual(int(v._zext(5)), 0xf)
+        self.assertEqual(int(v._zext(6)), 0xf)
+        with self.assertRaises(AssertionError):
+            v._zext(3)
+
+        v = t.from_py(0b0111)
+        self.assertEqual(int(v._zext(4)), 0b0111)
+
+    def test_4b_trunc(self):
+        t = Bits3t(4)
+        v = t.from_py(0xf)
+        self.assertEqual(int(v._trunc(3)), 0b111)
+        self.assertEqual(int(v._trunc(2)), 0b11)
+
+        t = Bits3t(4, signed=True)
+        low, up, _, _ = self.getMinMaxVal(t)
+
+        self.assertEqual(int(low._trunc(3)), 0)
+        self.assertEqual(int(up._trunc(3)), -1)
 
     def test_8b_add(self, t=int8_t):
         low, up, intLow, intUp = self.getMinMaxVal(t)
@@ -107,8 +145,9 @@ class Bits3tArithmeticTC(Bits3tBaseTC):
             ae(int(-low), int(low))
             ae(int(-up), -mask(w - 1))
         else:
-            with self.assertRaises(TypeError):
-                -t.from_py(0)
+            ae(int(-t.from_py(0)), 0)
+            ae(int(-t.from_py(up)), 1)
+            ae(int(-t.from_py(1)), up)
 
     def test_8b_div(self, t=int8_t):
         self.assertEqual((t.from_py(0) // t.from_py(1)), 0)
