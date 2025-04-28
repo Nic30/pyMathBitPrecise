@@ -356,6 +356,58 @@ class Bits3val():
         v._dtype = resT
         return v
 
+    def _ext(self, signed: bool, newWidth: Union[int, Self]) -> Self:
+        """
+        :note: preserves sign of type
+        """
+        if signed:
+            return self._sext(newWidth)
+        else:
+            return self._zext(newWidth)
+
+    def _sext(self, newWidth: Union[int, Self]) -> Self:
+        """
+        signed extension, pad with MSB bit on MSB side to newWidth result width
+        :see: :meth:`Bits3val._ext`
+        """
+        t = self._dtype
+        w = t.bit_length()
+        if newWidth == w:
+            return self
+        assert newWidth > w, (newWidth, w)
+        resTy = t._createMutated(newWidth)
+        val = self.val
+        newBitsMask = bit_field(w, newWidth)
+        if get_bit(val, w - 1):
+            val |= newBitsMask
+        vldMask = self.vld_mask
+        if get_bit(vldMask, w - 1):
+            vldMask |= newBitsMask
+
+        return resTy._from_py(val, vldMask)
+
+    def _zext(self, newWidth: Union[int, Self]) -> Self:
+        """
+        zero extension, pad with 0 on msb side to newWidth result width
+        :see: :meth:`Bits3val._ext`
+        """
+
+        t = self._dtype
+        w = t.bit_length()
+        if newWidth == w:
+            return self
+        assert newWidth > w, (newWidth, w)
+        resTy = t._createMutated(newWidth)
+        return resTy.from_py(self.val, vld_mask=self.vld_mask | bit_field(w, newWidth))
+
+    def _trunc(self, newWidth: Union[int, Self]) -> Self:
+        assert newWidth > 0, newWidth
+        w = self._dtype.bit_length()
+        assert newWidth <= w, newWidth
+        resTy = self._dtype._createMutated(newWidth)
+        resMask = mask(newWidth)
+        return resTy._from_py(self.val & resMask, self.vld_mask & resMask)
+
     def __getitem__(self, key: Union[int, slice, Self]) -> Self:
         "self[key]"
         if isinstance(key, slice):
