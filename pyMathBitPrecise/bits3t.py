@@ -356,10 +356,12 @@ class Bits3val():
         v._dtype = resT
         return v
 
-    def _ext(self, signed: bool, newWidth: Union[int, Self]) -> Self:
+    def _ext(self, newWidth: Union[int, Self], signed: bool=_NOT_SPECIFIED) -> Self:
         """
         :note: preserves sign of type
         """
+        if signed is _NOT_SPECIFIED:
+            signed = self._dtype.signed
         if signed:
             return self._sext(newWidth)
         else:
