@@ -4,7 +4,7 @@
 import unittest
 
 from pyMathBitPrecise.bit_utils import to_signed, mask
-from pyMathBitPrecise.bits3t import Bits3t
+from pyMathBitPrecise.bits3t import Bits3t, bitsBitOp__lshr, bitsBitOp__ashr
 from tests.bits3tBaseTC import Bits3tBaseTC, int8_t, int512_t, \
     uint512_t, uint8_t
 
@@ -92,17 +92,46 @@ class Bits3tBitwiseTC(Bits3tBaseTC):
                     v = to_signed(v, w)
             self.assertEqual(t.from_py(1) << i, v)
 
-    def test_8b_rshift(self, t=int8_t):
+    def test_8b_rshift_arithmetical(self, t=int8_t):
+        w = t.bit_length()
+        m = t.all_mask()
+        # msb=1
+        for i in range(w):
+            if t.signed:
+                res = bitsBitOp__ashr(t.from_py(-1), i)
+                self.assertEqual(res, -1, i)
+            else:
+                res = bitsBitOp__ashr(t.from_py(m), i)
+                self.assertEqual(res, m)
+        # msb=0
+        v = m >> 1
+        for i in range(w):
+            self.assertEqual(t.from_py(v) >> i, v >> i)
+
+    def test_8b_rshift_logical(self, t=int8_t):
         w = t.bit_length()
         m = t.all_mask()
         for i in range(w):
             if t.signed:
-                res = t.from_py(-1) >> i
+                res = t.from_py(-1)
+                res = bitsBitOp__lshr(res, i)
                 if i == 0:
                     self.assertEqual(res, -1, i)
                 else:
                     self.assertEqual(res, m >> i, i)
             else:
+                self.assertEqual(bitsBitOp__lshr(t.from_py(m), i), m >> i)
+
+    def test_8b_rshift(self, t=int8_t):
+        w = t.bit_length()
+        m = t.all_mask()
+        for i in range(w):
+            if t.signed:
+                # arithmetic shift
+                res = t.from_py(-1) >> i
+                self.assertEqual(res, -1, i)
+            else:
+                # logical shift
                 self.assertEqual(t.from_py(m) >> i, m >> i)
 
     def test_8b_16b_concat(self):
@@ -129,6 +158,12 @@ class Bits3tBitwiseTC(Bits3tBaseTC):
     def test_512b_rshift(self):
         self.test_8b_rshift(int512_t)
 
+    def test_512b_rshift_arithmetical(self):
+        self.test_8b_rshift_arithmetical(int512_t)
+
+    def test_512b_rshift_logical(self):
+        self.test_8b_rshift_logical(int512_t)
+
     def test_u512b_and(self):
         self.test_8b_and(uint512_t)
 
@@ -146,6 +181,12 @@ class Bits3tBitwiseTC(Bits3tBaseTC):
 
     def test_u512b_rshift(self):
         self.test_8b_rshift(uint512_t)
+
+    def test_u512b_rshift_arithmetical(self):
+        self.test_8b_rshift_arithmetical(uint512_t)
+
+    def test_u512b_rshift_logical(self):
+        self.test_8b_rshift_logical(uint512_t)
 
     def test_u8b_and(self):
         self.test_8b_and(uint8_t)
@@ -165,10 +206,16 @@ class Bits3tBitwiseTC(Bits3tBaseTC):
     def test_u8b_rshift(self):
         self.test_8b_rshift(uint8_t)
 
+    def test_u8b_rshift_arithmetical(self):
+        self.test_8b_rshift_arithmetical(uint8_t)
+
+    def test_u8b_rshift_logical(self):
+        self.test_8b_rshift_logical(uint8_t)
+
 
 if __name__ == '__main__':
     testLoader = unittest.TestLoader()
-    # suite = unittest.TestSuite([Bits3tBitwiseTC("test_512b_rshift")])
+    # suite = unittest.TestSuite([Bits3tBitwiseTC("test_u8b_rshift_arithmetical")])
     suite = testLoader.loadTestsFromTestCase(Bits3tBitwiseTC)
     runner = unittest.TextTestRunner(verbosity=3)
     runner.run(suite)
