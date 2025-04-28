@@ -391,7 +391,11 @@ def reverse_byte_order(val: "Bits3val"):
 
 
 def is_power_of_2(v: Union["Bits3val", int]):
-    return ~(v & (v - 1))
+    if isinstance(v, int):
+        assert v > 0
+        return (v != 0) & ((v & (v - 1)) == 0)
+    else:
+        return (v != 0) & ((v & (v - 1))._eq(0))
 
 
 def next_power_of_2(v: Union["Bits3val", int], width:Optional[int]=None):
@@ -427,3 +431,52 @@ def round_up_to_multiple_of(v: int, divider:int):
     else:
         return _v
 
+
+def ctlz(Val: int, width: int) -> int:
+    """
+    Count leading zeros
+    """
+    if Val == 0:
+        return width
+
+    # Bisection method.
+    ZeroBits = 0
+    if not is_power_of_2(width):
+        # because alg. works only for pow2 width
+        _w = next_power_of_2(width, 64)
+        paddingBits = _w - width
+        width = _w
+    else:
+        paddingBits = 0
+
+    Shift = width >> 1
+    while Shift:
+        Tmp = Val >> Shift
+        if Tmp:
+            Val = Tmp
+        else:
+            ZeroBits |= Shift
+        Shift >>= 1
+    return ZeroBits - paddingBits
+
+
+def _ctpop_u64(v: int) -> int:
+    v = v - ((v >> 1) & 0x5555555555555555)
+    v = (v & 0x3333333333333333) + ((v >> 2) & 0x3333333333333333)
+    v = (v + (v >> 4)) & 0x0F0F0F0F0F0F0F0F
+    return (v * 0x0101010101010101) >> 56
+
+
+def ctpop(val: int, width: int):
+    """
+    count number of 1 in val (population count)
+    """
+    res = 0
+    mask_u64 = mask(64)
+    while True:
+        res += _ctpop_u64(val & mask_u64)
+        width -= 64
+        if width <= 0:
+            break
+        val >>= 64
+    return res
