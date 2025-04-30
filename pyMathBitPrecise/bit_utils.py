@@ -402,8 +402,8 @@ def next_power_of_2(v: Union["Bits3val", int], width:Optional[int]=None):
     # depend on the fact that v < 2^width
     v = v - 1
     if isinstance(v, int):
-        v = to_unsigned(v, width)
         assert width is not None
+        v = to_unsigned(v, width)
     else:
         width = v._dtype.bit_length()
 
@@ -418,6 +418,7 @@ def next_power_of_2(v: Union["Bits3val", int], width:Optional[int]=None):
 
     if isinstance(v, int):
         v &= mask(width)
+
     return v
 
 
