@@ -496,9 +496,9 @@ def cttz(val: int, width:int):
     # Bisection method.
     ZeroBits = 0
     if not is_power_of_2(width):
-        w = next_power_of_2(width, 64)  # because alg. works only for pow2  width
-    Shift = w >> 1
-    Mask = mask(w) >> Shift
+        width = next_power_of_2(width, 64)  # because alg. works only for pow2  width
+    Shift = width >> 1
+    Mask = mask(width) >> Shift
     while Shift:
         if (val & Mask) == 0:
             val >>= Shift
