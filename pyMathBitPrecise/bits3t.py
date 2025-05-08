@@ -5,7 +5,7 @@ from copy import copy
 from enum import Enum
 from math import log2, ceil
 from operator import le, ge, gt, lt, ne, eq, and_, or_, xor, sub, add
-from typing import Union, Optional, Callable, Self
+from typing import Union, Optional, Callable, Self, Literal
 
 from pyMathBitPrecise.array3t import Array3t
 from pyMathBitPrecise.bit_utils import mask, get_bit, get_bit_range, \
@@ -356,7 +356,7 @@ class Bits3val():
         v._dtype = resT
         return v
 
-    def _ext(self, newWidth: Union[int, Self], signed: bool=_NOT_SPECIFIED) -> Self:
+    def _ext(self, newWidth: Union[int, Self], signed: Union[bool, Literal[_NOT_SPECIFIED]]=_NOT_SPECIFIED) -> Self:
         """
         :note: preserves sign of type
         """
@@ -387,6 +387,10 @@ class Bits3val():
             vldMask |= newBitsMask
 
         return resTy._from_py(val, vldMask)
+        # alfternatively:
+        # sign_bit = 1 << (bits - 1)
+        # return (value & (sign_bit - 1)) - (value & sign_bit)
+
 
     def _zext(self, newWidth: Union[int, Self]) -> Self:
         """
@@ -409,6 +413,15 @@ class Bits3val():
         resTy = self._dtype._createMutated(newWidth)
         resMask = mask(newWidth)
         return resTy._from_py(self.val & resMask, self.vld_mask & resMask)
+
+    def _extOrTrunc(self, newWidth: int, signed: Union[bool, Literal[_NOT_SPECIFIED]]=_NOT_SPECIFIED) -> Self:
+        w = self._dtype.bit_length()
+        if w < newWidth:
+            return self._ext(newWidth, signed)
+        elif w > newWidth:
+            return self._trunc(newWidth)
+        else:
+            return self
 
     def __getitem__(self, key: Union[int, slice, Self]) -> Self:
         "self[key]"
