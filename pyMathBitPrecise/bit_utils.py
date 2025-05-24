@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: UTF-8 -*-
+from math import ceil
 from typing import List, Tuple, Generator, Union, Optional, Literal, Sequence
 
 from pyMathBitPrecise.utils import grouper
@@ -83,6 +84,55 @@ def bit_set_to(val: int, bitNo: int, bitVal: int) -> int:
         raise ValueError(("Invalid value of bit to set", bitVal))
 
 
+def byte_mask_to_bit_mask_int(m: int, width: int, byte_width:int=8) -> int:
+    """
+    Expands each bit byte_width times to convert from byte mask to bit mask
+    """
+    res = 0
+    mTmp = m
+    byte_mask = mask(byte_width)
+    for i in range(width):
+        b = mTmp & 1
+        if b:
+            res |= byte_mask << (i * byte_width)
+        mTmp >>= 1
+
+    return res
+
+
+def byte_mask_to_bit_mask(m: "Bits3Val", byte_width:int=8) -> "Bits3Val":
+    """
+    Replicate each bit byte_width times
+    """
+    res = None
+    for b in m:
+        if res is None:
+            res = b._sext(byte_width)
+        else:
+            res = b._sext(byte_width)._concat(res)
+
+    return res
+
+
+def bit_mask_to_byte_mask_int(m: int, width: int, byte_width:int=8) -> int:
+    """
+    Compresses all bit in byte to 1 bit to convert from bit mask to byte mask
+    """
+    assert width % byte_width == 0
+    mTmp = m
+    res = 0
+    byte_mask = mask(byte_width)
+    for i in range(width // byte_width):
+        B = mTmp & byte_mask
+        if B == byte_mask:
+            res |= 1 << i
+        else:
+            assert B == 0, "Each byte must be entirely set or entirely unset"
+        mTmp >>= byte_width
+
+    return res
+
+
 def apply_set_and_clear(val: int, set_flag: int, clear_flag: int):
     """
     :param val: an input value of the flag(s)
@@ -93,6 +143,26 @@ def apply_set_and_clear(val: int, set_flag: int, clear_flag: int):
     :return: new value of the flag
     """
     return (val & ~clear_flag) | set_flag
+
+
+def apply_write_with_mask(current_data: "Bits3val", new_data: "Bits3val", write_mask: "Bits3val") -> "Bits3val":
+    """
+    :return: an updated value current_data which has bytes defined by write_mask updated from new_data
+    """
+    m = byte_mask_to_bit_mask(write_mask)
+    return apply_set_and_clear(current_data, new_data & m, m)
+
+
+def extend_to_width_multiple_of_8(v: "Bits3val") -> "Bits3val":
+    """
+    make width of signal modulo 8 equal to 0
+    """
+    w = v._dtype.bit_length()
+    cosest_multiple_of_8 = ceil((w // 8) / 8) * 8
+    if cosest_multiple_of_8 == w:
+        return v
+    else:
+        return v._ext(cosest_multiple_of_8)
 
 
 def align(val: int, lowerBitCntToAlign: int) -> int:
@@ -388,6 +458,11 @@ def reverse_byte_order(val: "Bits3val"):
         else:
             top = top._concat(s)
     return top
+
+
+def reverse_byte_order_int(val: int, width: int):
+    assert width % 8 == 0, width
+    return int.from_bytes(val.to_bytes(width // 8, "big"), "little")
 
 
 def is_power_of_2(v: Union["Bits3val", int]):
