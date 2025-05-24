@@ -269,7 +269,8 @@ class Bits3val():
             the corresponding bit in val is invalid
     """
     _BOOL = Bits3t(1)
-    _SIGNED_FOR_SLICE_CONCAT_RESULT = False
+    _SIGNED_FOR_SLICE_RESULT = False
+    _SIGNED_FOR_CONCAT_RESULT = False
 
     def __init__(self, t: Bits3t, val: int, vld_mask: int):
         if not isinstance(t, Bits3t):
@@ -344,7 +345,7 @@ class Bits3val():
         w = self._dtype.bit_length()
         other_w = other._dtype.bit_length()
         resWidth = w + other_w
-        resT = self._dtype.__class__(resWidth, signed=self._SIGNED_FOR_SLICE_CONCAT_RESULT)
+        resT = self._dtype.__class__(resWidth, signed=self._SIGNED_FOR_CONCAT_RESULT)
         other_val = other.val
         if other_val < 0:
             other_val = to_unsigned(other_val, other_w)
@@ -448,7 +449,7 @@ class Bits3val():
         else:
             raise TypeError(key)
 
-        new_t = self._dtype.__class__(size, signed=self._SIGNED_FOR_SLICE_CONCAT_RESULT)
+        new_t = self._dtype._createMutated(size, signed=self._SIGNED_FOR_SLICE_RESULT)
         return new_t._from_py(val, vld)
 
     def __setitem__(self, index: Union[slice, int, Self],
