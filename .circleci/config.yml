@@ -6,8 +6,9 @@ orbs:
 
 jobs:
   install-test-deploy:
-    executor: python/default
-    tag: '3.12.11' # https://circleci.com/developer/images/image/cimg/python
+    executor:
+	  name: python/default
+      tag: '3.12.11' # https://circleci.com/developer/images/image/cimg/python
     resource_class: small
     steps:
       - checkout
