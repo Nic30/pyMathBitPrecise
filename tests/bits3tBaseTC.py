@@ -20,14 +20,8 @@ def Bits3valToInt(val):
 class Bits3tBaseTC(unittest.TestCase):
 
     def getMinMaxVal(self, t):
-        m = t.all_mask()
-        if t.signed:
-            intLow = -(m // 2) - 1
-            intUp = m // 2
-        else:
-            intLow = 0
-            intUp = m
-        return t.from_py(intLow), t.from_py(intUp), intLow, intUp
+        intMin, intMax = t.get_domain_range()
+        return t.from_py(intMin), t.from_py(intMax), intMin, intMax
 
     def assertEqual(self, first, second, msg=None):
         if first is not None:
