@@ -92,14 +92,35 @@ class Bits3t():
         return self._all_mask
 
     def get_domain_range(self):
-        m = self.all_mask()
+        """
+        equvalent of (get_min_value(), get_max_value())
+        :note: as an independent function from performace reasons
+        """
+        m = self._all_mask
         if self.signed:
             intMin = -(m // 2) - 1
             intMax = m // 2
         else:
             intMin = 0
             intMax = m
+
         return (intMin, intMax)
+
+    def get_min_value(self):
+        m = self._all_mask
+        if self.signed:
+            intMin = -(m // 2) - 1
+        else:
+            intMin = 0
+        return intMin
+
+    def get_max_value(self):
+        m = self._all_mask
+        if self.signed:
+            intMax = m // 2
+        else:
+            intMax = m
+        return intMax
 
     def bit_length(self) -> int:
         """
