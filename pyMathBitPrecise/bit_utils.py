@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: UTF-8 -*-
-from math import ceil
+import math
 from typing import List, Tuple, Generator, Union, Optional, Literal, Sequence
 
 from pyMathBitPrecise.utils import grouper
@@ -158,7 +158,7 @@ def extend_to_width_multiple_of_8(v: "Bits3val") -> "Bits3val":
     make width of signal modulo 8 equal to 0
     """
     w = v._dtype.bit_length()
-    cosest_multiple_of_8 = ceil((w // 8) / 8) * 8
+    cosest_multiple_of_8 = math.ceil((w // 8) / 8) * 8
     if cosest_multiple_of_8 == w:
         return v
     else:
@@ -506,6 +506,13 @@ def round_up_to_multiple_of(v: int, divider:int):
         return _v + divider
     else:
         return _v
+
+
+def round_up_to_power_of_2(x: int):
+    assert x >= 0, x
+    if x == 0:
+        return 0
+    return int(2 ** math.ceil(math.log2(x)))
 
 
 def ctlz(Val: int, width: int) -> int:
