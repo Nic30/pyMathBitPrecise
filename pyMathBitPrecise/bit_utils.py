@@ -38,6 +38,27 @@ def get_bit_range(val: int, bitsStart: int, bitsLen: int) -> int:
     return val & mask(bitsLen)
 
 
+def get_single_1_at_position_of_least_significant_0(x: int):
+    """
+    Hacker's Delight: 2nd Edition, 2-1 Manipulating Rightmost Bits
+    
+    10100111 -> 00001000
+    """
+    assert x >= 0, x
+    return ~x & (x + 1)
+
+
+def get_single_0_at_position_of_least_significant_1(x: int, width: int):
+    """
+    Hacker's Delight: 2nd Edition, 2-1 Manipulating Rightmost Bits
+    
+    10101000 -> 11110111
+    """
+    assert x >= 0, x
+    res = ~x | (x - 1)
+    return to_unsigned(res, width)
+
+
 def clean_bit(val: int, bitNo: int) -> int:
     """
     Set a specified bit to '0'
@@ -45,11 +66,50 @@ def clean_bit(val: int, bitNo: int) -> int:
     return val & ~(1 << bitNo)
 
 
+def clear_least_significant_1(x: int) -> int:
+    """
+    Hacker's Delight: 2nd Edition, 2-1 Manipulating Rightmost Bits
+    010110 -> 010100
+    
+    :note: can be used for 2**n test
+    """
+    # :note: this is equivalent to x - (x & -x)
+    return x & (x - 1)
+
+
+def clear_trailing_1s(x: int) -> int:
+    """
+    Hacker's Delight: 2nd Edition, 2-1 Manipulating Rightmost Bits
+    10100111 -> 10100000
+    
+    :note: can be used for 2**n – 1 test
+    """
+    return x & (x + 1)
+
+
 def set_bit(val: int, bitNo: int) -> int:
     """
     Set a specified bit to '1'
     """
     return val | (1 << bitNo)
+
+
+def set_least_significant_0(x: int) -> int:
+    """
+    Hacker's Delight: 2nd Edition, 2-1 Manipulating Rightmost Bits
+
+    101001 -> 101011
+    """
+    return x | (x + 1)
+
+
+def set_trailing_0s(x: int) -> int:
+    """
+    Hacker's Delight: 2nd Edition, 2-1 Manipulating Rightmost Bits
+
+    10101000 -> 10101111
+    """
+    return x | (x - 1)
 
 
 def toggle_bit(val: int, bitNo: int) -> int:
@@ -468,9 +528,9 @@ def reverse_byte_order_int(val: int, width: int):
 def is_power_of_2(v: Union["Bits3val", int]):
     if isinstance(v, int):
         assert v > 0
-        return (v != 0) & ((v & (v - 1)) == 0)
+        return (v != 0) & (clear_least_significant_1(v) == 0)
     else:
-        return (v != 0) & ((v & (v - 1))._eq(0))
+        return (v != 0) & (clear_least_significant_1(v)._eq(0))
 
 
 def next_power_of_2(v: Union["Bits3val", int], width:Optional[int]=None):

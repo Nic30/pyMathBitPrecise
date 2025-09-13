@@ -1,11 +1,33 @@
 import unittest
-from pyMathBitPrecise.bit_utils import toggle_bit, align, iter_bits, mask_bytes,\
-    reverse_bits, bit_list_to_int, int_list_to_int, extend_to_size,\
-    bit_list_reversed_endianity, int_to_int_list,\
-    bit_list_reversed_bits_in_bytes, apply_set_and_clear
+from pyMathBitPrecise.bit_utils import toggle_bit, align, iter_bits, mask_bytes, \
+    reverse_bits, bit_list_to_int, int_list_to_int, extend_to_size, \
+    bit_list_reversed_endianity, int_to_int_list, \
+    bit_list_reversed_bits_in_bytes, apply_set_and_clear, \
+    clear_least_significant_1, clear_trailing_1s, \
+    get_single_1_at_position_of_least_significant_0, \
+    get_single_0_at_position_of_least_significant_1, set_least_significant_0, \
+    set_trailing_0s
 
 
 class BitUtilsTC(unittest.TestCase):
+
+    def test_get_single_1_at_position_of_least_significant_0(self):
+        self.assertEqual(get_single_1_at_position_of_least_significant_0(0b10100111), 0b00001000)
+
+    def test_get_single_0_at_position_of_least_significant_1(self):
+        self.assertEqual(get_single_0_at_position_of_least_significant_1(0b10101000, 8), 0b11110111)
+
+    def test_clear_least_significant_1(self):
+        self.assertEqual(clear_least_significant_1(0b010110), 0b010100)
+
+    def test_clear_trailing_1s(self):
+        self.assertEqual(clear_trailing_1s(0b10100111), 0b10100000)
+
+    def test_set_least_significant_0(self):
+        self.assertEqual(set_least_significant_0(0b101001), 0b101011)
+
+    def test_set_trailing_0s(self):
+        self.assertEqual(set_trailing_0s(0b10101000), 0b10101111)
 
     def test_toogle_bit(self):
         self.assertEqual(toggle_bit(0b10, 1), 0b00)
