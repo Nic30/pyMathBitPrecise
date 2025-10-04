@@ -368,11 +368,9 @@ class Bits3val():
         resWidth = w + other_w
         resT = self._dtype.__class__(resWidth, signed=self._SIGNED_FOR_CONCAT_RESULT)
         other_val = other.val
-        if other_val < 0:
-            other_val = to_unsigned(other_val, other_w)
+        assert other_val >= 0, other_val
         v = self.__copy__()
-        if v.val < 0:
-            v.val = to_unsigned(v.val, w)
+        assert v.val >= 0, v
         v.val = (v.val << other_w) | other_val
         v.vld_mask = (v.vld_mask << other_w) | other.vld_mask
         v._dtype = resT
