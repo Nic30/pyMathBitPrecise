@@ -345,25 +345,15 @@ class Bits3val():
         """
         return dtype.from_py(self.val, self.vld_mask)
 
-    def _cast_sign(self, signed: Optional[bool]) -> Self:
+    def _cast_sign(self, signed: Optional[bool], **typeMutateKwArgs) -> Self:
         """
         Cast signed-unsigned value
         """
         t = self._dtype
         if t.signed == signed:
             return self
-        selfSign = t.signed
         v = self.__copy__()
-        m = t._all_mask
-        _v = v.val
-
-        if selfSign and not signed:
-            if _v < 0:
-                v.val = m + _v + 1
-
-        v._dtype = v._dtype.__copy__()
-        v._dtype = self._dtype.__copy__()
-        v._dtype.signed = signed
+        v._dtype = v._dtype._createMutated(signed=signed, **typeMutateKwArgs)
         return v
 
     def _concat(self, other: "Bits3val") -> Self:
