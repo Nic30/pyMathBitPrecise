@@ -393,9 +393,9 @@ def bit_list_reversed_endianity(bitList: List[Literal[0, 1]], extend=True):
     w = len(bitList)
     i = w
 
-    items = []
+    items: list[Literal[0, 1]] = []
     while i > 0:
-        # take last 8 bytes or rest
+        # take last 8 bits or rest
         lower = max(i - 8, 0)
         b = bitList[lower:i]
         if extend:
@@ -411,7 +411,8 @@ def bit_list_reversed_bits_in_bytes(bitList: List[Literal[0, 1]], extend=None):
     w = len(bitList)
     if extend is None:
         assert w % 8 == 0
-    tmp = []
+
+    tmp: list[Literal[0, 1]] = []
     for db in grouper(8, bitList, padvalue=0):
         tmp.extend(reversed(db))
 
