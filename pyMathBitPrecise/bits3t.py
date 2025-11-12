@@ -551,19 +551,19 @@ class Bits3val():
         Operator self._eq(other) as self == other
         == is not overridden in order to prevent tricky behavior if hashing partially valid values
         """
-        return bitsCmp__val(self, other, eq)
+        return bitsCmp__val_EQ(self, other)
 
     def __req__(self, other: int) -> Self:
         "Operator ==."
-        return bitsCmp__val(self._dtype.from_py(other), self, eq)
+        return bitsCmp__val_EQ(self._dtype.from_py(other), self)
 
     def __ne__(self, other: Union[int, Self]) -> Self:
         "Operator !=."
-        return bitsCmp__val(self, other, ne)
+        return bitsCmp__val_NE(self, other)
 
     def __rne__(self, other: int) -> Self:
         "Operator !=."
-        return bitsCmp__val(self._dtype.from_py(other), self, ne)
+        return bitsCmp__val_NE(self._dtype.from_py(other), self)
 
     def __lt__(self, other: Union[int, Self]) -> Self:
         "Operator <."
@@ -913,6 +913,7 @@ def bitsCmp__val(self: Bits3val, other: Union[Bits3val, int],
     """
     Apply comparative operator
     """
+    assert evalFn is not eq and evalFn is not ne, ("use bitsCmp__val_EQ/bitsCmp__val_NE instead")
     t = self._dtype
     w = t.bit_length()
     if isinstance(other, int):
@@ -934,6 +935,59 @@ def bitsCmp__val(self: Bits3val, other: Union[Bits3val, int],
     res = evalFn(v0, v1) & _vld
 
     return self._BOOL._from_py(int(res), int(_vld))
+
+
+def bitsCmp__val_NE(self: Bits3val, other: Union[Bits3val, int]) -> "Bits3val":
+    """
+    Apply != operator
+    """
+    t = self._dtype
+    w = t.bit_length()
+    if isinstance(other, int):
+        other = t.from_py(other)
+        ot = other._dtype
+    else:
+        ot = other._dtype
+        if bool(t.signed) != bool(ot.signed) or w != ot.bit_length():
+            raise TypeError("Value compare supports only same width and sign type", t, ot)
+
+    v0 = self.val
+    v1 = other.val
+
+    vld = self.vld_mask & other.vld_mask
+    _vld = int(vld == t._all_mask)
+    res = ((v0 ^ v1) & vld) != 0  # at least some valid bit non equal
+
+    return self._BOOL._from_py(int(res), _vld | int(res))
+
+
+def bitsCmp__val_EQ(self: Bits3val, other: Union[Bits3val, int]) -> "Bits3val":
+    """
+    Apply == operator
+    """
+    t = self._dtype
+    w = t.bit_length()
+    if isinstance(other, int):
+        other = t.from_py(other)
+        ot = other._dtype
+    else:
+        ot = other._dtype
+        if bool(t.signed) != bool(ot.signed) or w != ot.bit_length():
+            raise TypeError("Value compare supports only same width and sign type", t, ot)
+
+    v0 = self.val
+    v1 = other.val
+
+    vld = self.vld_mask & other.vld_mask
+    _vld = int(vld == t._all_mask)
+    ne = ((v0 ^ v1) & vld) != 0  # all valid bits equal
+    res = int(not ne)
+    if not _vld:
+        if ne:
+            _vld = 1  # some bits invalid, but from valid bytes we already know that the value does not equal
+        else:
+            res = 0  # set value for invalid value to 0
+    return self._BOOL._from_py(int(res), _vld)
 
 
 def bitsArithOp__val(self: Bits3val, other: Union[Bits3val, int],
