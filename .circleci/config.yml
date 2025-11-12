@@ -8,7 +8,7 @@ jobs:
   install-test-deploy:
     executor:
       name: python/default
-      tag: '3.12.11' # https://circleci.com/developer/images/image/cimg/python
+      tag: '3.13.7' # https://circleci.com/developer/images/image/cimg/python
     resource_class: small
     steps:
       - checkout
