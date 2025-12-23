@@ -579,11 +579,11 @@ def round_up_to_power_of_2(x: int):
     return int(2 ** math.ceil(math.log2(x)))
 
 
-def ctlz(Val: int, width: int) -> int:
+def ctlz(val: int, width: int) -> int:
     """
     Count leading zeros
     """
-    if Val == 0:
+    if val == 0:
         return width
 
     # Bisection method.
@@ -598,9 +598,9 @@ def ctlz(Val: int, width: int) -> int:
 
     Shift = width >> 1
     while Shift:
-        Tmp = Val >> Shift
+        Tmp = val >> Shift
         if Tmp:
-            Val = Tmp
+            val = Tmp
         else:
             ZeroBits |= Shift
         Shift >>= 1
@@ -629,7 +629,7 @@ def ctpop(val: int, width: int):
     return res
 
 
-def cttz(val: int, width:int):
+def cttz(val: int, width: int):
     """
     Count trailing zeros
     """
