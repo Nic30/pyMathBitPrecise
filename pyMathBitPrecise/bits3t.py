@@ -141,7 +141,7 @@ class Bits3t():
                     )
                 )
 
-    def _normalize_val_and_mask(self, val: Optional[int], vld_mask: Optional[int]) -> tuple[int, int]:
+    def _normalize_val_and_mask(self, val: Union[int, None, Self], vld_mask: Optional[int]) -> tuple[int, int]:
         if val is None:
             vld = 0
             val = 0
@@ -185,6 +185,10 @@ class Bits3t():
                     vld_mask = m
                 else:
                     val = _val
+            elif isinstance(val, Bits3val):
+                assert vld_mask is None or vld_mask == val.vld_mask
+                vld_mask = val.vld_mask
+                val = val.val
             else:
                 try:
                     val = int(val)
@@ -317,8 +321,13 @@ class Bits3val():
     def __copy__(self) -> Self:
         return self.__class__(self._dtype, self.val, self.vld_mask)
 
-    def to_py(self) -> int:
-        return int(self)
+    def to_py(self) -> int | None:
+        if self._is_full_valid():
+            return int(self)
+        elif self.vld_mask == 0:
+            return None
+        else:
+            raise ValidityError("Can not convert to python because some bits are defined and other bits undefined")
 
     def _is_full_valid(self) -> bool:
         """
