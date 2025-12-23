@@ -112,6 +112,13 @@ def set_trailing_0s(x: int) -> int:
     return x | (x - 1)
 
 
+def separate_least_significant_1(x: int):
+    """
+    1100 -> 0100
+    """
+    return x & -x
+
+
 def toggle_bit(val: int, bitNo: int) -> int:
     """
     Toggle specified bit in int
@@ -607,6 +614,13 @@ def ctlz(val: int, width: int) -> int:
     return ZeroBits - paddingBits
 
 
+def ctlo(val: int, width: int) -> int:
+    """
+    Count leading ones
+    """
+    return ctlz(~val, width)
+
+
 def _ctpop_u64(v: int) -> int:
     v = v - ((v >> 1) & 0x5555555555555555)
     v = (v & 0x3333333333333333) + ((v >> 2) & 0x3333333333333333)
@@ -654,3 +668,10 @@ def cttz(val: int, width: int):
         Mask >>= Shift
 
     return ZeroBits
+
+
+def ctto(val: int):
+    """
+    Count trailing ones
+    """
+    return cttz(~val, val.bit_length())
