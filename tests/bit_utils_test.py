@@ -6,7 +6,8 @@ from pyMathBitPrecise.bit_utils import toggle_bit, align, iter_bits, mask_bytes,
     clear_least_significant_1, clear_trailing_1s, \
     get_single_1_at_position_of_least_significant_0, \
     get_single_0_at_position_of_least_significant_1, set_least_significant_0, \
-    set_trailing_0s
+    set_trailing_0s, reverse_byte_order, reverse_byte_order_int
+from pyMathBitPrecise.bits3t import Bits3t
 
 
 class BitUtilsTC(unittest.TestCase):
@@ -75,6 +76,16 @@ class BitUtilsTC(unittest.TestCase):
         self.assertEqual(apply_set_and_clear(1, 0b1010, 1), 0b1010)
         self.assertEqual(apply_set_and_clear(1, 0, 0b1010), 1)
         self.assertEqual(apply_set_and_clear(1, 0b1010, 0b1010), 0b1011)
+
+    def test_reverse_byte_order(self):
+        v = Bits3t(32).from_py(0x01020304)
+        vRev = reverse_byte_order(v)
+        self.assertEqual(int(vRev), 0x04030201)
+
+    def test_reverse_byte_order_int(self):
+        v = 0x01020304
+        vRev = reverse_byte_order_int(v, 32)
+        self.assertEqual(vRev, 0x04030201)
 
 
 if __name__ == '__main__':

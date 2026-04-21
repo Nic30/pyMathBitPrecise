@@ -524,7 +524,7 @@ def reverse_byte_order(val: "Bits3val"):
         if top is None:
             top = s
         else:
-            top = top._concat(s)
+            top = s._concat(top)
     return top
 
 
