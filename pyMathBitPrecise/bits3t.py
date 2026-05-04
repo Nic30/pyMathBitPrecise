@@ -779,7 +779,7 @@ class Bits3val():
     def __repr__(self):
         t = self._dtype
         if self.vld_mask != t.all_mask():
-            m = ", mask {0:x}".format(self.vld_mask)
+            m = f", mask {self.vld_mask:x}"
         else:
             m = ""
         typeDescrChar = 'b' if t.signed is None else 'i' if t.signed else 'u'
