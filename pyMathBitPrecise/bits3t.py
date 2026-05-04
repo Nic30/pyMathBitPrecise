@@ -128,7 +128,7 @@ class Bits3t():
             all_mask = self.all_mask()
             w = self._bit_length
             if isinstance(val, int):
-                pass
+                val = int(val)  # to cover for bool
             elif isinstance(val, bytes):
                 val = int.from_bytes(
                     val, byteorder="little", signed=bool(self.signed))
@@ -285,6 +285,8 @@ class Bits3val():
             raise TypeError(val)
         if type(vld_mask) != int:
             raise TypeError(vld_mask)
+        if val < 0:
+            raise ValueError(t, val)
         self._dtype = t
         self.val = val
         self.vld_mask = vld_mask
@@ -657,10 +659,10 @@ class Bits3val():
         "Operator //."
         other_is_int = isinstance(other, int)
         t = self._dtype
+        w = t.bit_length()
         if other_is_int:
             v0 = self.val
             if t.signed:
-                w = t.bit_length()
                 v0 = to_signed(v0, w)
             v = v0 // other
             m = self._dtype.all_mask()
@@ -669,7 +671,6 @@ class Bits3val():
                 v0 = self.val
                 v1 = other.val
                 if t.signed:
-                    w = t.bit_length()
                     v0 = to_signed(v0, w)
                     v1 = to_signed(v1, w)
                 v = v0 // v1
@@ -677,16 +678,18 @@ class Bits3val():
             else:
                 v = 0
                 m = 0
+        if v < 0:
+            v = to_unsigned(v, w)
         return self._dtype._from_py(v, m)
 
     def __mul__(self, other: Union[int, Self]) -> Self:
         "Operator *."
         resT = self._dtype
         other_is_int = isinstance(other, int)
+        w = resT.bit_length()
         if other_is_int:
             v0 = self.val
             if resT.signed:
-                w = resT.bit_length()
                 v0 = to_signed(v0, w)
 
             v = v0 * other
@@ -694,7 +697,6 @@ class Bits3val():
             v0 = self.val
             v1 = other.val
             if resT.signed:
-                w = resT.bit_length()
                 v0 = to_signed(v0, w)
                 v1 = to_signed(v1, w)
 
@@ -712,16 +714,19 @@ class Bits3val():
         else:
             vld_mask = 0
 
+        if v < 0:
+            v = to_unsigned(v, w)
+
         return resT._from_py(v, vld_mask)
 
     def __mod__(self, other: Union[int, Self]) -> Self:
         "Operator %."
         resT = self._dtype
         other_is_int = isinstance(other, int)
+        w = resT.bit_length()
         if other_is_int:
             v0 = self.val
             if resT.signed:
-                w = resT.bit_length()
                 v0 = to_signed(v0, w)
 
             v = v0 % other
@@ -729,7 +734,6 @@ class Bits3val():
             v0 = self.val
             v1 = other.val
             if resT.signed:
-                w = resT.bit_length()
                 v0 = to_signed(v0, w)
                 v1 = to_signed(v1, w)
 
@@ -746,6 +750,8 @@ class Bits3val():
             vld_mask = resT._all_mask
         else:
             vld_mask = 0
+        if v < 0:
+            v = to_unsigned(v, w)
 
         return resT._from_py(v, vld_mask)
 
@@ -975,29 +981,32 @@ def bitsArithOp__val(self: Bits3val, other: Union[Bits3val, int],
     """
     Apply arithmetic operator
     """
+    t = self._dtype
     if isinstance(other, int):
         other = self._dtype.from_py(other)
+    else:
+        assert t == other._dtype, (self, other, t, other._dtype)
+
     v = self.__copy__()
     self_vld = self._is_full_valid()
     other_vld = other._is_full_valid()
     v0 = self.val
     v1 = other.val
     w = v._dtype.bit_length()
-    t = self._dtype
     if t.signed:
         v0 = to_signed(v0, w)
         v1 = to_signed(v1, w)
 
     _v = evalFn(v0, v1)
 
-    if t.signed:
+    if _v < 0:
         _v = to_unsigned(_v, w)
-    else:
-        _v &= mask(w)
+
+    _v &= t._all_mask
 
     v.val = _v
     if self_vld and other_vld:
-        v.vld_mask = mask(w)
+        v.vld_mask = t._all_mask
     else:
         v.vld_mask = 0
 
