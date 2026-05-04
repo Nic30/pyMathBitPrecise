@@ -770,6 +770,12 @@ class Bits3val():
         res.vld_mask = 0
         return res
 
+    def __abs__(self):
+        if self < 0:
+            return -self
+        else:
+            return self
+
     def __repr__(self):
         t = self._dtype
         if self.vld_mask != t.all_mask():
