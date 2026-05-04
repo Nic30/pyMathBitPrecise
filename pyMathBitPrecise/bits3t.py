@@ -34,19 +34,10 @@ class Bits3t():
             (for example std_logic_vector(0 downto 0)
              instead of std_logic in VHDL,
              wire[1] instead of wire)
-    :ivar ~.strict_sign: same thing as strict_width just for signed/unsigned
-    :ivar ~.strict_width: if True the arithmetic, bitwise
-        and comparison operators can be performed only on value
-        of this exact same width
-    :note: operation is not strict if at least one operand
-        does not have strict flag set,
-        the result width/sign is taken from other operand
-        (or first if both are not strict)
     """
 
     def __init__(self, bit_length: int, signed:Optional[bool]=False, name: Optional[str]=None,
-                 force_vector=False,
-                 strict_sign=True, strict_width=True):
+                 force_vector=False):
         if force_vector and bit_length != 1:
             assert bit_length == 1, "force_vector=True is appliable only for 1b values"
         self._bit_length = bit_length
@@ -54,15 +45,12 @@ class Bits3t():
         self._all_mask = mask(bit_length)
         self.name = name
         self.force_vector = force_vector
-        self.strict_sign = strict_sign
-        self.strict_width = strict_width
 
     def _createMutated(self,
             bit_length: int=_NOT_SPECIFIED,
             signed:Optional[bool]=_NOT_SPECIFIED, name: Optional[str]=_NOT_SPECIFIED,
             force_vector=_NOT_SPECIFIED,
-            strict_sign=_NOT_SPECIFIED,
-            strict_width=_NOT_SPECIFIED) -> Self:
+            ) -> Self:
         if bit_length is _NOT_SPECIFIED:
             bit_length = self._bit_length
         if signed is  _NOT_SPECIFIED:
@@ -71,18 +59,10 @@ class Bits3t():
             name = self.name
         if force_vector is _NOT_SPECIFIED:
             force_vector = self.force_vector
-        if strict_sign is _NOT_SPECIFIED:
-            strict_sign = self.strict_sign
-        if strict_width is _NOT_SPECIFIED:
-            strict_width = self.strict_width
-        return self.__class__(bit_length, signed=signed, name=name, force_vector=force_vector, strict_sign=strict_sign, strict_width=strict_width)
+        return self.__class__(bit_length, signed=signed, name=name, force_vector=force_vector)
 
     def __copy__(self) -> Self:
-        t = self.__class__(self._bit_length, signed=self.signed,
-                           name=self.name,
-                           force_vector=self.force_vector,
-                           strict_sign=self.strict_sign,
-                           strict_width=self.strict_width)
+        t = self._createMutated()
         return t
 
     def all_mask(self) -> int:
@@ -135,8 +115,6 @@ class Bits3t():
                     and self._bit_length == other._bit_length
                     and self.name == other.name
                     and self.force_vector == other.force_vector
-                    and self.strict_sign == other.strict_sign
-                    and self.strict_width == other.strict_width
                     and self.signed == other.signed
                     )
                 )
@@ -255,8 +233,6 @@ class Bits3t():
             self._all_mask,
             self.name,
             self.force_vector,
-            self.strict_sign,
-            self.strict_width
         ))
 
     def __repr__(self):
@@ -282,11 +258,6 @@ class Bits3t():
         constr.append(f"{sign:s}{c:d}")
         if self.force_vector:
             constr.append("force_vector")
-
-        if not self.strict_sign:
-            constr.append("strict_sign=False")
-        if not self.strict_width:
-            constr.append("strict_width=False")
 
         return "<%s %s>" % (self.__class__.__name__,
                              ", ".join(constr))
