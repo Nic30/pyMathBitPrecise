@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: UTF-8 -*-
 import math
-from typing import List, Tuple, Generator, Union, Optional, Literal, Sequence
+from typing import Generator, Union, Optional, Literal, Sequence
 
 from pyMathBitPrecise.utils import grouper
 
@@ -256,7 +256,7 @@ def iter_bits(val: int, length: int) -> Generator[Literal[0, 1], None, None]:
         val >>= 1
 
 
-def iter_bits_sequences(val: int, length: int) -> Generator[Tuple[Literal[0, 1], int], None, None]:
+def iter_bits_sequences(val: int, length: int) -> Generator[tuple[Literal[0, 1], int], None, None]:
     """
     Iter tuples (bitVal, number of same bits), lsb first
     """
@@ -335,7 +335,7 @@ class ValidityError(ValueError):
     """
 
 
-def normalize_slice(s: slice, obj_width: int) -> Tuple[int, int]:
+def normalize_slice(s: slice, obj_width: int) -> tuple[int, int]:
     start, stop, step = s.start, s.stop, s.step
     if step is not None and step != -1:
         raise NotImplementedError(s.step)
@@ -396,7 +396,7 @@ def rotate_left(v: int, width: int, shAmount:int):
     return ((v << shAmount) & mask(width)) | (v >> (width - shAmount))
 
 
-def bit_list_reversed_endianity(bitList: List[Literal[0, 1]], extend=True):
+def bit_list_reversed_endianity(bitList: list[Literal[0, 1]], extend=True):
     w = len(bitList)
     i = w
 
@@ -413,7 +413,7 @@ def bit_list_reversed_endianity(bitList: List[Literal[0, 1]], extend=True):
     return items
 
 
-def bit_list_reversed_bits_in_bytes(bitList: List[Literal[0, 1]], extend=None):
+def bit_list_reversed_bits_in_bytes(bitList: list[Literal[0, 1]], extend=None):
     "Byte reflection  (0x0f -> 0xf0)"
     w = len(bitList)
     if extend is None:
@@ -431,11 +431,11 @@ def bit_list_reversed_bits_in_bytes(bitList: List[Literal[0, 1]], extend=None):
     return tmp
 
 
-def bytes_to_bit_list_lower_bit_first(bytes_: bytes) -> List[Literal[0, 1]]:
+def bytes_to_bit_list_lower_bit_first(bytes_: bytes) -> list[Literal[0, 1]]:
     """
     b'\x01' to [1, 0, 0, 0, 0, 0, 0, 0]
     """
-    result: List[Literal[0, 1]] = []
+    result: list[Literal[0, 1]] = []
     for byte in bytes_:
         for _ in range(8):
             result.append(byte & 0b1)
@@ -443,11 +443,11 @@ def bytes_to_bit_list_lower_bit_first(bytes_: bytes) -> List[Literal[0, 1]]:
     return result
 
 
-def bytes_to_bit_list_upper_bit_first(bytes_: bytes) -> List[Literal[0, 1]]:
+def bytes_to_bit_list_upper_bit_first(bytes_: bytes) -> list[Literal[0, 1]]:
     """
     b'\x01' to [0, 0, 0, 0, 0, 0, 0, 1]
     """
-    result: List[Literal[0, 1]] = []
+    result: list[Literal[0, 1]] = []
     for byte in bytes_:
         for _ in range(8):
             result.append((byte & 0x80) >> 7)
@@ -455,14 +455,14 @@ def bytes_to_bit_list_upper_bit_first(bytes_: bytes) -> List[Literal[0, 1]]:
     return result
 
 
-def byte_list_to_be_int(_bytes: List[Literal[0, 1, 2, 3, 4, 5, 6, 7]]):
+def byte_list_to_be_int(_bytes: list[Literal[0, 1, 2, 3, 4, 5, 6, 7]]):
     """
     In input list LSB first, in result little endian ([1, 0] -> 0x0001)
     """
     return int_list_to_int(_bytes, 8)
 
 
-def bit_list_to_int(bitList: List[Literal[0, 1]]):
+def bit_list_to_int(bitList: list[Literal[0, 1]]):
     """
     In input list LSB first, in result little endian ([0, 1] -> 0b10)
     """
@@ -472,14 +472,14 @@ def bit_list_to_int(bitList: List[Literal[0, 1]]):
     return res
 
 
-def bit_list_to_bytes(bitList: List[Literal[0, 1]]) -> bytes:
+def bit_list_to_bytes(bitList: list[Literal[0, 1]]) -> bytes:
     byteCnt = len(bitList) // 8
     if len(bitList) % 8:
         byteCnt += 1
     return bit_list_to_int(bitList).to_bytes(byteCnt, 'big')
 
 
-def int_list_to_int(il: List[int], item_width: int):
+def int_list_to_int(il: list[int], item_width: int):
     """
     [0x0201, 0x0403] -> 0x04030201
     """
