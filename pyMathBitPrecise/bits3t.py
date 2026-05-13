@@ -119,7 +119,7 @@ class Bits3t():
                     )
                 )
 
-    def _normalize_val_and_mask(self, val: Union[int, None, Self], vld_mask: Optional[int]) -> tuple[int, int]:
+    def _normalize_val_and_mask(self, val: Union[int, None, bytes, Self], vld_mask: Optional[int]) -> tuple[int, int]:
         if val is None:
             vld = 0
             val = 0
@@ -164,7 +164,9 @@ class Bits3t():
                 else:
                     val = _val
             elif isinstance(val, Bits3val):
-                assert vld_mask is None or vld_mask == val.vld_mask
+                assert vld_mask is None or vld_mask == val.vld_mask, (
+                    "vld_mask for initialization from Bits3val should not be specified or"
+                    " should be same as val.vld_mask to prevent ambiguity", val, vld_mask)
                 vld_mask = val.vld_mask
                 val = val.val
             else:
