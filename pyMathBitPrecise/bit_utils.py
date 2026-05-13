@@ -504,6 +504,33 @@ def int_to_int_list(v: int, item_width: int, number_of_items: int):
     return res
 
 
+def int_list_to_int_list(v: list[int], in_item_width: int, out_item_width: int, padvalue:Optional[int]=None):
+    """
+    [0x0100, 0x0302, ] (width=16) <-> [0x00, 0x01, 0x02, 0x03] (width=8)
+    """
+
+    if in_item_width == out_item_width or not v:
+        return v
+    res: list[int] = []
+    if in_item_width < out_item_width:
+        if out_item_width % in_item_width != 0:
+            raise NotImplementedError(in_item_width, out_item_width)
+        number_of_items_per_out = out_item_width // in_item_width
+        if padvalue is None:
+            assert len(v) % number_of_items_per_out == 0, ("Padding is disabled and the value is not sufficietly long",
+                                                           in_item_width, out_item_width, len(v))
+        for items in grouper(number_of_items_per_out, v, padvalue=padvalue):
+            res.append(int_list_to_int(items, in_item_width))
+
+    else:
+        if in_item_width % out_item_width != 0:
+            raise NotImplementedError(in_item_width, out_item_width)
+        number_of_items_per_in = in_item_width // out_item_width
+        for item in v:
+            res.extend(int_to_int_list(item, out_item_width, number_of_items_per_in))
+    return res
+
+
 def reverse_byte_order(val: "Bits3val"):
     """
     Reverse byteorder (littleendian/bigendian) of signal or value

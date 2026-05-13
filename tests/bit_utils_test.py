@@ -1,4 +1,5 @@
 import unittest
+
 from pyMathBitPrecise.bit_utils import toggle_bit, align, iter_bits, mask_bytes, \
     reverse_bits, bit_list_to_int, int_list_to_int, extend_to_size, \
     bit_list_reversed_endianity, int_to_int_list, \
@@ -6,7 +7,8 @@ from pyMathBitPrecise.bit_utils import toggle_bit, align, iter_bits, mask_bytes,
     clear_least_significant_1, clear_trailing_1s, \
     get_single_1_at_position_of_least_significant_0, \
     get_single_0_at_position_of_least_significant_1, set_least_significant_0, \
-    set_trailing_0s, reverse_byte_order, reverse_byte_order_int
+    set_trailing_0s, reverse_byte_order, reverse_byte_order_int, \
+    int_list_to_int_list
 from pyMathBitPrecise.bits3t import Bits3t
 
 
@@ -86,6 +88,12 @@ class BitUtilsTC(unittest.TestCase):
         v = 0x01020304
         vRev = reverse_byte_order_int(v, 32)
         self.assertEqual(vRev, 0x04030201)
+
+    def test_int_list_to_int_list(self):
+        a = [0x0100, 0x0302, ]
+        b = [0x00, 0x01, 0x02, 0x03]
+        self.assertSequenceEqual(int_list_to_int_list(a, 16, 8), b)
+        self.assertSequenceEqual(int_list_to_int_list(b, 8, 16), a)
 
 
 if __name__ == '__main__':
