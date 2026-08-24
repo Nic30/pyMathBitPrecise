@@ -82,7 +82,7 @@ def clear_trailing_1s(x: int) -> int:
     Hacker's Delight: 2nd Edition, 2-1 Manipulating Rightmost Bits
     10100111 -> 10100000
     
-    :note: can be used for 2**n – 1 test
+    :note: can be used for 2**n - 1 test
     """
     return x & (x + 1)
 
@@ -500,7 +500,7 @@ def int_to_int_list(v: int, item_width: int, number_of_items: int):
         res.append(v & item_mask)
         v >>= item_width
 
-    assert v == 0, ("there should be nothing left, the value is larger", v)
+    assert int(v) == 0, ("there should be nothing left, the value is larger", v)
     return res
 
 
