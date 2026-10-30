@@ -200,7 +200,7 @@ def bit_mask_to_byte_mask_int(m: int, width: int, byte_width:int=8) -> int:
     return res
 
 
-def apply_set_and_clear(val: int, set_flag: int, clear_flag: int):
+def apply_set_and_clear(val: "Bits3val", set_flag: "Bits3val", clear_flag: "Bits3val") -> "Bits3val":
     """
     :param val: an input value of the flag(s)
     :param set_flag: a mask of bits to set to 1
@@ -212,12 +212,27 @@ def apply_set_and_clear(val: int, set_flag: int, clear_flag: int):
     return (val & ~clear_flag) | set_flag
 
 
-def apply_write_with_mask(current_data: "Bits3val", new_data: "Bits3val", write_mask: "Bits3val") -> "Bits3val":
+def apply_set_and_clear_int(val: int, set_flag: int, clear_flag: int, width: int) -> int:
+    """
+    same as :func:`apply_set_and_clear` just for int
+    """
+    return (val & to_unsigned(~clear_flag, width)) | set_flag
+
+
+def apply_write_with_mask(current_data: "Bits3val", new_data: "Bits3val", write_mask: "Bits3val", byte_width:int=8) -> "Bits3val":
     """
     :return: an updated value current_data which has bytes defined by write_mask updated from new_data
     """
-    m = byte_mask_to_bit_mask(write_mask)
+    m = byte_mask_to_bit_mask(write_mask, byte_width=byte_width)
     return apply_set_and_clear(current_data, new_data & m, m)
+
+
+def apply_write_with_mask_int(current_data: Union["Bits3val", int], new_data: Union["Bits3val", int], write_mask: int, width:int, byte_width=8) -> Union["Bits3val", int]:
+    """
+    same as :func:`apply_write_with_mask` just for int
+    """
+    m = byte_mask_to_bit_mask_int(write_mask, width, byte_width=byte_width)
+    return apply_set_and_clear_int(current_data, new_data & m, m, width)
 
 
 def extend_to_width_multiple_of_8(v: "Bits3val") -> "Bits3val":
